@@ -1,0 +1,158 @@
+{
+    "standings": [
+        {
+            "rank": 1,
+            "team": "מכבי רמת גן אמיר",
+            "teamEn": "Maccabi Ramat Gan Amir",
+            "games": 7,
+            "wins": 7,
+            "losses": 0,
+            "points": 14,
+            "color": "#FFD700",
+            "isUs": false
+        },
+        {
+            "rank": 2,
+            "team": "מכבי ת״א צפון",
+            "teamEn": "Maccabi TA North",
+            "games": 8,
+            "wins": 6,
+            "losses": 2,
+            "points": 14,
+            "color": "#FFC107",
+            "isUs": false
+        },
+        {
+            "rank": 3,
+            "team": "מכבי תל אביב מערב",
+            "teamEn": "Maccabi TA West",
+            "games": 8,
+            "wins": 6,
+            "losses": 2,
+            "points": 14,
+            "color": "#FFEB3B",
+            "isUs": false
+        },
+        {
+            "rank": 4,
+            "team": "מכבי תל אביב דרום",
+            "teamEn": "Maccabi TA South",
+            "games": 7,
+            "wins": 5,
+            "losses": 2,
+            "points": 12,
+            "color": "#FFA000",
+            "isUs": false
+        },
+        {
+            "rank": 5,
+            "team": "בני יהודה תל אביב",
+            "teamEn": "Bnei Yehuda Tel Aviv",
+            "games": 8,
+            "wins": 4,
+            "losses": 4,
+            "points": 12,
+            "color": "#2196F3",
+            "isUs": true
+        },
+        {
+            "rank": 6,
+            "team": "מכבי רמת גן אברהם",
+            "teamEn": "Maccabi Ramat Gan Avraham",
+            "games": 8,
+            "wins": 3,
+            "losses": 5,
+            "points": 11,
+            "color": "#9C27B0",
+            "isUs": false
+        },
+        {
+            "rank": 7,
+            "team": "הפועל ת״א אביב",
+            "teamEn": "Hapoel Tel Aviv Aviv",
+            "games": 8,
+            "wins": 2,
+            "losses": 6,
+            "points": 10,
+            "color": "#F44336",
+            "isUs": false
+        }
+    ],
+    "players": [
+        {
+            "rank": 1,
+            "name": "נועם רפאלי",
+            "nameEn": "Noam Rafaeli",
+            "team": "מכבי ת״א צפון",
+            "teamEn": "Maccabi TA North",
+            "ppg": 22.1,
+            "threepm": 3.2,
+            "avatar": "🏆",
+            "isUs": false
+        },
+        {
+            "rank": 2,
+            "name": "רביד מלאכי",
+            "nameEn": "Ravid Malachi",
+            "team": "בני יהודה",
+            "teamEn": "Bnei Yehuda",
+            "ppg": 18.5,
+            "threepm": 2.8,
+            "avatar": "⭐",
+            "isUs": true
+        },
+        {
+            "rank": 3,
+            "name": "עידו לוי",
+            "nameEn": "Ido Levi",
+            "team": "מכבי ר״ג",
+            "teamEn": "Maccabi RG",
+            "ppg": 17.8,
+            "threepm": 2.5,
+            "avatar": "🔥",
+            "isUs": false
+        },
+        {
+            "rank": 4,
+            "name": "איתי כהן",
+            "nameEn": "Itay Cohen",
+            "team": "מכבי ת״א מערב",
+            "teamEn": "Maccabi TA West",
+            "ppg": 15.2,
+            "threepm": 1.9,
+            "avatar": "💪",
+            "isUs": false
+        },
+        {
+            "rank": 5,
+            "name": "יונתן דוד",
+            "nameEn": "Yonatan David",
+            "team": "מכבי ת״א דרום",
+            "teamEn": "Maccabi TA South",
+            "ppg": 14.5,
+            "threepm": 2.1,
+            "avatar": "🏀",
+            "isUs": false
+        }
+    ],
+    "seasonStats": [
+        {
+            "label": "ממוצע נקודות",
+            "labelEn": "Avg Points",
+            "value": "17.6",
+            "color": "text-primary"
+        },
+        {
+            "label": "שלשות למשחק",
+            "labelEn": "3PM/G",
+            "value": "2.5",
+            "color": "text-green-500"
+        },
+        {
+            "label": "משחקים",
+            "labelEn": "Games",
+            "value": "9",
+            "color": "text-blue-500"
+        }
+    ]
+}

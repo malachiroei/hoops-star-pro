@@ -1,0 +1,153 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@import url('https://fonts.googleapis.com/css2?family=Heebo:wght@400;500;600;700;800;900&family=Oswald:wght@400;500;600;700&display=swap');
+
+@layer base {
+  :root {
+    /* Hoops Star - NBA 2K Dark Theme */
+    --background: 0 0% 4%;
+    --foreground: 0 0% 98%;
+
+    --card: 0 0% 7%;
+    --card-foreground: 0 0% 98%;
+
+    --popover: 0 0% 7%;
+    --popover-foreground: 0 0% 98%;
+
+    /* Neon Orange Primary */
+    --primary: 24 100% 50%;
+    --primary-foreground: 0 0% 2%;
+
+    /* Dark surfaces */
+    --secondary: 0 0% 12%;
+    --secondary-foreground: 0 0% 98%;
+
+    --muted: 0 0% 15%;
+    --muted-foreground: 0 0% 65%;
+
+    --accent: 24 100% 50%;
+    --accent-foreground: 0 0% 2%;
+
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 0 0% 98%;
+
+    --border: 0 0% 18%;
+    --input: 0 0% 18%;
+    --ring: 24 100% 50%;
+
+    --radius: 0.75rem;
+
+    /* Custom Hoops Star tokens */
+    --glow-orange: 24 100% 50%;
+    --glow-red: 0 100% 50%;
+    --surface-dark: 0 0% 5%;
+    --surface-card: 0 0% 8%;
+    --surface-elevated: 0 0% 12%;
+    
+    /* Gradients */
+    --gradient-orange: linear-gradient(135deg, hsl(24 100% 50%), hsl(15 100% 45%));
+    --gradient-card: linear-gradient(180deg, hsl(0 0% 10%), hsl(0 0% 6%));
+    --gradient-glow: radial-gradient(circle at center, hsl(24 100% 50% / 0.3), transparent 70%);
+    
+    /* Shadows */
+    --shadow-glow: 0 0 30px hsl(24 100% 50% / 0.4);
+    --shadow-card: 0 8px 32px hsl(0 0% 0% / 0.5);
+    --shadow-button: 0 4px 20px hsl(24 100% 50% / 0.5);
+  }
+
+  .dark {
+    --background: 0 0% 4%;
+    --foreground: 0 0% 98%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-background text-foreground font-sans antialiased;
+    font-family: 'Heebo', sans-serif;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    font-family: 'Oswald', sans-serif;
+    @apply font-bold tracking-tight;
+  }
+}
+
+@layer components {
+  .glow-text {
+    text-shadow: 0 0 20px hsl(var(--primary) / 0.6);
+  }
+
+  .glow-border {
+    box-shadow: 0 0 20px hsl(var(--primary) / 0.3), inset 0 0 20px hsl(var(--primary) / 0.1);
+  }
+
+  .glass-card {
+    background: linear-gradient(180deg, hsl(0 0% 12% / 0.8), hsl(0 0% 6% / 0.9));
+    backdrop-filter: blur(10px);
+    border: 1px solid hsl(0 0% 20% / 0.5);
+  }
+
+  .stat-card {
+    background: var(--gradient-card);
+    border: 1px solid hsl(var(--primary) / 0.3);
+    box-shadow: var(--shadow-card);
+  }
+
+  .nav-item {
+    @apply flex flex-col items-center gap-1 px-4 py-2 text-muted-foreground transition-all duration-300;
+  }
+
+  .nav-item.active {
+    @apply text-primary;
+  }
+
+  .nav-item.active svg {
+    filter: drop-shadow(0 0 8px hsl(var(--primary)));
+  }
+
+  .player-card-gradient {
+    background: linear-gradient(180deg, hsl(0 0% 15%), hsl(0 0% 5%));
+  }
+
+  .orange-gradient-bg {
+    background: var(--gradient-orange);
+  }
+
+  .animate-pulse-glow {
+    animation: pulse-glow 2s ease-in-out infinite;
+  }
+
+  @keyframes pulse-glow {
+    0%, 100% {
+      box-shadow: 0 0 20px hsl(var(--primary) / 0.4);
+    }
+    50% {
+      box-shadow: 0 0 40px hsl(var(--primary) / 0.7);
+    }
+  }
+
+  @keyframes float {
+    0%, 100% {
+      transform: translateY(0);
+    }
+    50% {
+      transform: translateY(-10px);
+    }
+  }
+
+  .animate-float {
+    animation: float 3s ease-in-out infinite;
+  }
+}
+
+/* RTL Support for Hebrew */
+[dir="rtl"] {
+  text-align: right;
+}
