@@ -7,7 +7,11 @@ import { ProfileTab } from "@/components/ProfileTab";
 import { TrainingTab } from "@/components/TrainingTab";
 import { AICoach } from "@/components/AICoach";
 
-const Index = () => {
+interface IndexProps {
+  onLogout?: () => void;
+}
+
+const Index = ({ onLogout }: IndexProps) => {
   const [activeTab, setActiveTab] = useState("home");
 
   const renderTab = () => {
@@ -21,7 +25,7 @@ const Index = () => {
       case "coach":
         return <AICoach />;
       case "profile":
-        return <ProfileTab />;
+        return <ProfileTab onLogout={onLogout} />;
       default:
         return <HomeTab />;
     }

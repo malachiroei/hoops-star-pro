@@ -1,7 +1,8 @@
-import { Sparkles, Edit3, Settings, Play, Trophy, Target, Zap, Palette, Lock, Check, ChevronLeft, ChevronRight } from "lucide-react";
+import { Sparkles, Edit3, Settings, Play, Trophy, Target, Zap, Palette, Lock, Check, ChevronLeft, ChevronRight, LogOut } from "lucide-react";
 import { useState, useRef } from "react";
 import { ShotMap } from "./ShotMap";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
 
 // Skin definitions
 const skins = [
@@ -61,7 +62,11 @@ const skins = [
 
 type Skin = typeof skins[0];
 
-export function ProfileTab() {
+interface ProfileTabProps {
+  onLogout?: () => void;
+}
+
+export function ProfileTab({ onLogout }: ProfileTabProps) {
   const [isGenerating, setIsGenerating] = useState(false);
   const [selectedSkin, setSelectedSkin] = useState<Skin>(skins[0]);
   const [isSkinDialogOpen, setIsSkinDialogOpen] = useState(false);
@@ -186,6 +191,15 @@ export function ProfileTab() {
             <button className="w-10 h-10 rounded-full bg-surface-elevated/80 backdrop-blur-sm flex items-center justify-center border border-border/50 transition-all hover:border-primary/50">
               <Settings className="text-muted-foreground" size={20} />
             </button>
+            {onLogout && (
+              <button 
+                onClick={onLogout}
+                className="w-10 h-10 rounded-full bg-surface-elevated/80 backdrop-blur-sm flex items-center justify-center border border-border/50 transition-all hover:scale-110"
+                title="تسجيل الخروج"
+              >
+                <LogOut className="text-destructive" size={20} />
+              </button>
+            )}
           </div>
 
           {/* Avatar Section */}
