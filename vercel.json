@@ -1,0 +1,8 @@
+{
+  "crons": [
+    {
+      "path": "/api/cron/update-league-standings",
+      "schedule": "0 3 * * *"
+    }
+  ]
+}
