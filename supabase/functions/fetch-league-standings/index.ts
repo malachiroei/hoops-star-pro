@@ -42,7 +42,12 @@ async function fetchFromUrl(url: string): Promise<string> {
 
     const html = await response.text();
     console.log(`✅ Successfully fetched ${html.length} bytes`);
-    console.log(`📄 [HTML] First 3000 chars:\n${html.substring(0, 3000)}\n...[truncated]`);
+    
+    // Log the body content
+    const bodyMatch = html.match(/<body[^>]*>([\s\S]*)<\/body>/i);
+    const bodyContent = bodyMatch ? bodyMatch[1] : html;
+    console.log(`\n📝 [HTML BODY] First 1000 chars of body:\n${bodyContent.substring(0, 1000)}\n`);
+    
     return html;
   } catch (error) {
     console.warn(`Failed to fetch from ${url}:`, error.message);
@@ -78,10 +83,52 @@ async function fetchLeagueStandings(): Promise<LeagueTeam[]> {
     const standings: LeagueTeam[] = [];
     const now = new Date().toISOString();
 
-    // Parse the league table - look for table rows with team data
-    // The table structure: position | team name | games played | wins | losses | points
-    $("table tbody tr").each((index, element) => {
-      const cells = $(element).find("td");
+    console.log(`\n📄 [DEBUG] HTML Body (first 1000 chars):\n${html.substring(0, 1000)}\n`);
+
+    // Log document structure
+    console.log(`📋 [STRUCTURE] Looking for tables...`);
+    const allTables = $("table");
+    console.log(`   Found ${allTables.length} <table> elements total`);
+
+    // Try to find table with ID leagueStandings
+    console.log(`🎯 [SELECTOR] Trying: table#leagueStandings`);
+    let leagueTable = $("#leagueStandings");
+    console.log(`   Result: ${leagueTable.length} elements found`);
+
+    // If not found by ID, try by class
+    if (leagueTable.length === 0) {
+      console.log(`🎯 [SELECTOR] Trying: table[class*="standings"]`);
+      leagueTable = $("table[class*='standings']");
+      console.log(`   Result: ${leagueTable.length} elements found`);
+    }
+
+    // If still not found, try common selectors
+    if (leagueTable.length === 0) {
+      console.log(`🎯 [SELECTOR] Trying: .leagueStandings, .league-standings, .standings-table`);
+      leagueTable = $(".leagueStandings, .league-standings, .standings-table");
+      console.log(`   Result: ${leagueTable.length} elements found`);
+    }
+
+    // If still nothing, use first table as fallback
+    if (leagueTable.length === 0) {
+      console.log(`⚠️  [FALLBACK] Using first table on page`);
+      leagueTable = $("table").first();
+      if (leagueTable.length > 0) {
+        console.log(`   Found table with id="${leagueTable.attr("id")}" class="${leagueTable.attr("class")}"`);
+      }
+    }
+
+    // Parse the league table
+    const rows = leagueTable.find("tbody tr, tr");
+    console.log(`📊 [ROWS] Found ${rows.length} rows in selected table`);
+
+    if (rows.length === 0) {
+      console.log(`❌ No rows found. Showing table HTML:`);
+      console.log(leagueTable.html()?.substring(0, 500));
+    }
+
+    rows.each((index, element) => {
+      const cells = $(element).find("td, th");
 
       if (cells.length >= 6) {
         const position = parseInt($(cells[0]).text().trim()) || 0;
@@ -101,15 +148,20 @@ async function fetchLeagueStandings(): Promise<LeagueTeam[]> {
             points,
             updatedAt: now,
           });
+
+          // Log first few rows
+          if (standings.length <= 3) {
+            console.log(`   ✓ Row ${index}: [${position}] ${name} | G=${gamesPlayed} W=${wins} L=${losses} P=${points}`);
+          }
         }
       }
     });
 
     if (standings.length === 0) {
-      throw new Error("No league standings data found in HTML. Table structure may have changed.");
+      throw new Error("No league standings data found in HTML. Check logs for table structure.");
     }
 
-    console.log(`Successfully parsed ${standings.length} teams from league table`);
+    console.log(`\n✅ Successfully parsed ${standings.length} teams from league table`);
     return standings;
   } catch (error) {
     console.error("Error parsing league standings:", error);
