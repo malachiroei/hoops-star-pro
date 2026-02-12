@@ -17,12 +17,12 @@ const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
 const supabaseKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
 const supabase = createClient(supabaseUrl, supabaseKey);
 
-// Multiple URLs to try - direct standings link first
+// Multiple URLs to try - one.co.il has better standings table
 const LEAGUE_URLS = [
+  "https://ibba.one.co.il/league/standings/1360",
+  "https://ibba.one.co.il/",
   "https://ibasketball.co.il/league/standings/1360",
   "https://ibasketball.co.il/",
-  "https://ibasketball.co.il/league-standings/",
-  "https://ibba.one.co.il/",
 ];
 
 async function fetchFromUrl(url: string): Promise<string> {
@@ -83,117 +83,107 @@ async function fetchLeagueStandings(): Promise<LeagueTeam[]> {
     const standings: LeagueTeam[] = [];
     const now = new Date().toISOString();
 
-    console.log(`\n📄 [DEBUG] HTML Body (first 1000 chars):\n${html.substring(0, 1000)}\n`);
+    console.log(`\n� [PARSING] Searching for standings table...`);
 
     // Find ALL tables on page
-    console.log(`📋 [TABLES] Scanning all tables on page...`);
     const allTables = $("table");
-    console.log(`   Total tables found: ${allTables.length}`);
+    console.log(`   Found ${allTables.length} table(s) on page`);
 
-    // Log all tables first for debugging
-    allTables.each((tableIndex, tableElement) => {
-      const table = $(tableElement);
-      const rowCount = table.find("tbody tr, tr").length;
-      console.log(`   📌 TABLE ${tableIndex}: ${rowCount} rows, ID="${table.attr("id")}", Class="${table.attr("class")}"`);
-    });
-
-    // Now search for the table that contains 'בני יהודה'
-    console.log(`\n🔍 [SEARCH] Looking for table containing 'בני יהודה'...`);
-    let standingsTableIndex = -1;
-    let standingsTable: any = null;
+    let foundStandingsTable = false;
 
     allTables.each((tableIndex, tableElement) => {
-      const table = $(tableElement);
-      const allCellText = table.text();
+      if (foundStandingsTable) return; // Already found standings
 
-      if (allCellText.includes("בני יהודה")) {
-        console.log(`   ✅ Found 'בני יהודה' in TABLE ${tableIndex}!`);
-        standingsTableIndex = tableIndex;
-        standingsTable = table;
-        return false; // break
+      const table = $(tableElement);
+      const rows = table.find("tbody tr, tr");
+      
+      console.log(`   📌 Table ${tableIndex}: ${rows.length} rows`);
+
+      if (rows.length === 0) return;
+
+      // Get header row - try different selectors
+      let headerRow = table.find("thead tr").first();
+      if (headerRow.length === 0) {
+        headerRow = table.find("tr").first();
       }
-    });
 
-    if (!standingsTable) {
-      console.log(`   ❌ Could not find 'בני יהודה' in any table on the page`);
-      console.log(`   Available text on page includes:`);
-      allTables.each((idx, elem) => {
-        const text = $(elem).text().substring(0, 200);
-        console.log(`     Table ${idx}: "${text}"`);
+      const headerCells = headerRow.find("th, td");
+      const headers: string[] = [];
+      
+      headerCells.each((_, cell) => {
+        const headerText = $(cell).text().trim();
+        headers.push(headerText);
       });
-      throw new Error("Could not find standings table containing 'בני יהודה'");
-    }
 
-    console.log(`\n📊 [PARSING] Parsing table ${standingsTableIndex}...`);
+      console.log(`      Headers: ${headers.join(" | ")}`);
 
-    // Get headers for info
-    const headerCells = standingsTable.find("thead tr th, thead tr td, tr:first th, tr:first td");
-    const headerTexts: string[] = [];
-    headerCells.each((_, cell) => {
-      const headerText = $(cell).text().trim().substring(0, 40);
-      headerTexts.push(headerText);
-    });
-    console.log(`   Headers: ${headerTexts.join(" | ")}`);
+      // Check if this is the standings table with expected headers
+      // Looking for: מיקום (position), קבוצה (team), משחקים (games), נצ (wins), הפ (losses), נק (points)
+      const headerStr = headers.join("|").toLowerCase();
+      const isStandingsTable = 
+        headerStr.includes("מיקום") && 
+        headerStr.includes("קבוצה") && 
+        (headerStr.includes("נצ") || headerStr.includes("ניצחון"));
 
-    // Parse all rows from the standings table
-    const rows = standingsTable.find("tbody tr, tr");
-    console.log(`   Found ${rows.length} rows total`);
-    let parsedCount = 0;
+      if (!isStandingsTable && headers.length > 0) {
+        console.log(`      ⚠️  Not a standings table (missing expected headers)`);
+        return;
+      }
 
-    rows.each((rowIndex, element) => {
-      const cells = $(element).find("td, th");
-      
-      if (cells.length < 2) return;
+      if (isStandingsTable) {
+        console.log(`      ✅ Found standings table!`);
+      }
 
-      const cellTexts = cells.map((_, cell) => $(cell).text().trim()).get();
+      // Find column indices for each field
+      const positionIdx = headers.findIndex(h => h.trim() === "מיקום");
+      const teamIdx = headers.findIndex(h => h.trim() === "קבוצה");
+      const gamesIdx = headers.findIndex(h => h.trim() === "משחקים");
+      const winsIdx = headers.findIndex(h => h.trim() === "נצ");
+      const lossesIdx = headers.findIndex(h => h.trim() === "הפ");
+      const pointsIdx = headers.findIndex(h => h.trim() === "נק");
 
-      // Skip header rows
-      if (cellTexts.length === 0) return;
-      if (cellTexts[0].match(/^(מק"ט|#|מח"א|קבוצה|team)$/i)) return;
+      console.log(`      Column indices: P=${positionIdx} T=${teamIdx} G=${gamesIdx} W=${winsIdx} L=${lossesIdx} Pts=${pointsIdx}`);
 
-      // Try to detect if first column is a position number
-      const firstColNum = parseInt(cellTexts[0]);
-      
-      if (firstColNum >= 1 && firstColNum <= 50) {
-        const position = firstColNum;
-        const name = cellTexts[1] || "";
-        
-        if (name && name.length > 1) {
-          // Parse wins, losses, points from remaining columns
-          let wins = 0;
-          let losses = 0;
-          let gamesPlayed = 0;
-          let points = 0;
+      // Parse data rows
+      let parsedCount = 0;
+      rows.each((rowIndex, element) => {
+        // Skip header row
+        if (rowIndex === 0 && headerRow.get(0) === element) return;
 
-          // Try to find numeric columns
-          const numericCols: number[] = [];
-          for (let i = 2; i < cellTexts.length; i++) {
-            const num = parseInt(cellTexts[i]);
-            if (!isNaN(num)) {
-              numericCols.push(num);
-            }
-          }
+        const cells = $(element).find("td, th");
+        if (cells.length < 3) return;
 
-          // Assign based on number of numeric columns found
-          if (numericCols.length >= 4) {
-            // Position | Team | Games | W | L | Points (or similar)
-            gamesPlayed = numericCols[0];
-            wins = numericCols[1];
-            losses = numericCols[2];
-            points = numericCols[3];
-          } else if (numericCols.length >= 3) {
-            // Position | Team | W | L | Points
-            wins = numericCols[0];
-            losses = numericCols[1];
-            points = numericCols[2];
-            gamesPlayed = wins + losses;
-          } else if (numericCols.length >= 2) {
-            // Position | Team | W | L
-            wins = numericCols[0];
-            losses = numericCols[1];
-            gamesPlayed = wins + losses;
-          }
+        const cellTexts = cells.map((_, cell) => $(cell).text().trim()).get();
 
+        // Try to get position from the first column
+        let position = 0;
+        let name = "";
+        let gamesPlayed = 0;
+        let wins = 0;
+        let losses = 0;
+        let points = 0;
+
+        // Use column indices if found
+        if (positionIdx >= 0 && teamIdx >= 0) {
+          position = parseInt(cellTexts[positionIdx]) || 0;
+          name = cellTexts[teamIdx] || "";
+          
+          if (gamesIdx >= 0) gamesPlayed = parseInt(cellTexts[gamesIdx]) || 0;
+          if (winsIdx >= 0) wins = parseInt(cellTexts[winsIdx]) || 0;
+          if (lossesIdx >= 0) losses = parseInt(cellTexts[lossesIdx]) || 0;
+          if (pointsIdx >= 0) points = parseInt(cellTexts[pointsIdx]) || 0;
+        } else {
+          // Fallback: assume standard column order
+          position = parseInt(cellTexts[0]) || 0;
+          name = cellTexts[1] || "";
+          gamesPlayed = parseInt(cellTexts[2]) || 0;
+          wins = parseInt(cellTexts[3]) || 0;
+          losses = parseInt(cellTexts[4]) || 0;
+          points = parseInt(cellTexts[5]) || 0;
+        }
+
+        // Only add if position looks valid
+        if (position >= 1 && position <= 50 && name && name.length > 1) {
           standings.push({
             position,
             name,
@@ -205,18 +195,24 @@ async function fetchLeagueStandings(): Promise<LeagueTeam[]> {
           });
           parsedCount++;
 
-          // Log all rows for verification
-          console.log(`   [${position}] ${name.substring(0, 30)} | G=${gamesPlayed} W=${wins} L=${losses} P=${points}`);
+          // Log each team
+          console.log(`      [${position}] ${name.substring(0, 35)} | G=${gamesPlayed} W=${wins} L=${losses} P=${points}`);
         }
+      });
+
+      console.log(`      ✅ Parsed ${parsedCount} teams from this table`);
+
+      if (parsedCount > 0) {
+        foundStandingsTable = true;
       }
     });
 
     if (standings.length === 0) {
-      console.log(`\n❌ [ERROR] No standings parsed from table ${standingsTableIndex}`);
-      throw new Error("Found standings table but could not parse any teams");
+      console.log(`\n❌ [ERROR] No standings found in any table`);
+      throw new Error("Could not parse standings table");
     }
 
-    console.log(`\n✅ Successfully parsed ${standings.length} teams from standings table`);
+    console.log(`\n✅ Successfully parsed ${standings.length} teams total`);
     return standings;
   } catch (error) {
     console.error("Error parsing league standings:", error);
