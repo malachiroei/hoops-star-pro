@@ -78,6 +78,10 @@ export function LeagueTable() {
         </Button>
       </CardHeader>
       <CardContent>
+        {/* 🔴 DEBUG: Show actual team count */}
+        <div className="mb-4 p-2 bg-yellow-100 border-2 border-yellow-400 rounded text-center font-bold text-lg text-yellow-900">
+          🧪 DEBUG: {standings?.length || 0} teams found
+        </div>
         <div className="overflow-x-auto">
           <Table>
             <TableHeader>
@@ -121,3 +125,4 @@ export function LeagueTable() {
     </Card>
   );
 }
+
