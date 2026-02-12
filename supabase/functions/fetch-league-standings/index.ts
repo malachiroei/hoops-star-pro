@@ -137,7 +137,37 @@ async function fetchLeagueStandings(): Promise<LeagueTeam[]> {
         return;
       }
 
-      console.log(`   Trying table ${tableIndex}...`);
+      // Get headers to identify if this is a standings or games table
+      const headerCells = table.find("thead tr th, thead tr td, tr:first th, tr:first td");
+      const headerTexts: string[] = [];
+      headerCells.each((_, cell) => {
+        headerTexts.push($(cell).text().trim().toLowerCase());
+      });
+
+      console.log(`   🔎 Table ${tableIndex} - Headers: ${headerTexts.join(", ")}`);
+
+      // Skip games table (has מארחת or אורחת - host/visitor)
+      const hasGamesTableMarkers = headerTexts.some(h => 
+        h.includes("מארחת") || h.includes("אורחת") || h.includes("תאריך") || h.includes("שעה")
+      );
+
+      if (hasGamesTableMarkers) {
+        console.log(`   ❌ Table ${tableIndex} is a GAMES table (has מארחת/אורחת), skipping`);
+        return;
+      }
+
+      // Check if this looks like a STANDINGS table (has קבוצה or ניצחונות)
+      const hasStandingsMarkers = headerTexts.some(h => 
+        h.includes("קבוצה") || h.includes("ניצחונות") || h.includes("הפסדים") || 
+        h.includes("נקודות") || h.includes("משחקים")
+      );
+
+      if (!hasStandingsMarkers && headerTexts.length > 0) {
+        console.log(`   ⚠️  Table ${tableIndex} doesn't look like standings table, skipping`);
+        return;
+      }
+
+      console.log(`   ✅ Table ${tableIndex} looks like STANDINGS table - parsing...`);
       let foundTeams = 0;
 
       rows.each((rowIndex, element) => {
@@ -161,15 +191,32 @@ async function fetchLeagueStandings(): Promise<LeagueTeam[]> {
             let gamesPlayed = 0;
             let points = 0;
 
-            // Parse remaining columns
-            if (cellTexts.length >= 5) {
+            // Parse remaining columns - try different column arrangements
+            if (cellTexts.length >= 6) {
+              // Try: Position | Team | Games | W | L | Points
+              const col2 = parseInt(cellTexts[2]) || 0;
+              const col3 = parseInt(cellTexts[3]) || 0;
+              const col4 = parseInt(cellTexts[4]) || 0;
+              const col5 = parseInt(cellTexts[5]) || 0;
+
+              // Check if col2+col3=col4 (Games = W+L)
+              if (col2 + col3 === col4) {
+                wins = col2;
+                losses = col3;
+                gamesPlayed = col4;
+                points = col5;
+              } else {
+                // Try alternate: Position | Team | W | L | Points | Games
+                gamesPlayed = col2;
+                wins = col3;
+                losses = col4;
+                points = col5;
+              }
+            } else if (cellTexts.length >= 5) {
+              // Position | Team | W | L | Points
               wins = parseInt(cellTexts[2]) || 0;
               losses = parseInt(cellTexts[3]) || 0;
               points = parseInt(cellTexts[4]) || 0;
-              gamesPlayed = wins + losses;
-            } else if (cellTexts.length >= 4) {
-              wins = parseInt(cellTexts[2]) || 0;
-              losses = parseInt(cellTexts[3]) || 0;
               gamesPlayed = wins + losses;
             }
 
@@ -186,14 +233,14 @@ async function fetchLeagueStandings(): Promise<LeagueTeam[]> {
 
             // Log first 3 teams found
             if (foundTeams <= 3) {
-              console.log(`      ✓ Row ${rowIndex}: [${position}] ${name} | W=${wins} L=${losses}`);
+              console.log(`      ✓ Row ${rowIndex}: [${position}] ${name} | W=${wins} L=${losses} P=${points}`);
             }
           }
         }
       });
 
       if (foundTeams > 0) {
-        console.log(`   ✅ Table ${tableIndex} yielded ${foundTeams} teams - using this table!`);
+        console.log(`   ✅ Table ${tableIndex} yielded ${foundTeams} teams - SUCCESS!`);
       }
     });
 
