@@ -17,11 +17,12 @@ const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
 const supabaseKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
 const supabase = createClient(supabaseUrl, supabaseKey);
 
-// Multiple URLs to try (primary and alternatives with different domains/protocols)
+// Multiple URLs to try - direct standings link first
 const LEAGUE_URLS = [
-  "https://ibasketball.co.il/team/5458-%D7%91%D7%A0%D7%99-%D7%99%D7%94%D7%95%D7%93%D7%94-%D7%AA%D7%9C-%D7%90%D7%91%D7%99%D7%91/",
-  "https://ibba.one.co.il/team/5458-%D7%91%D7%A0%D7%99-%D7%99%D7%94%D7%95%D7%93%D7%94-%D7%AA%D7%9C-%D7%90%D7%91%D7%99%D7%91/",
-  "http://ibasketball.co.il/team/5458-%D7%91%D7%A0%D7%99-%D7%99%D7%94%D7%95%D7%93%D7%94-%D7%AA%D7%9C-%D7%90%D7%91%D7%99%D7%91/",
+  "https://ibasketball.co.il/league/standings/1360",
+  "https://ibasketball.co.il/",
+  "https://ibasketball.co.il/league-standings/",
+  "https://ibba.one.co.il/",
 ];
 
 async function fetchFromUrl(url: string): Promise<string> {
@@ -39,7 +40,10 @@ async function fetchFromUrl(url: string): Promise<string> {
       throw new Error(`HTTP ${response.status}: ${response.statusText}`);
     }
 
-    return await response.text();
+    const html = await response.text();
+    console.log(`✅ Successfully fetched ${html.length} bytes`);
+    console.log(`📄 [HTML] First 3000 chars:\n${html.substring(0, 3000)}\n...[truncated]`);
+    return html;
   } catch (error) {
     console.warn(`Failed to fetch from ${url}:`, error.message);
     throw error;
