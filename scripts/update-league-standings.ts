@@ -21,20 +21,67 @@ if (!supabaseUrl || !supabaseKey) {
 
 const supabase = createClient(supabaseUrl, supabaseKey);
 
-async function fetchLeagueStandings(): Promise<LeagueTeam[]> {
+// Multiple URLs to try (primary and alternatives)
+const LEAGUE_URLS = [
+  "https://ibasketball.co.il/team/5458-%D7%91%D7%A0%D7%99-%D7%99%D7%94%D7%95%D7%93%D7%94-%D7%AA%D7%9C-%D7%90%D7%91%D7%99%D7%91/",
+  "https://ibba.one.co.il/team/5458-%D7%91%D7%A0%D7%99-%D7%99%D7%94%D7%95%D7%93%D7%94-%D7%AA%D7%9C-%D7%90%D7%91%D7%99%D7%91/",
+  "http://ibasketball.co.il/team/5458-%D7%91%D7%A0%D7%99-%D7%99%D7%94%D7%95%D7%93%D7%94-%D7%AA%D7%9C-%D7%90%D7%91%D7%99%D7%91/",
+];
+
+async function fetchFromUrl(url: string): Promise<string> {
+  console.log(`Attempting to fetch from: ${url}`);
+  
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), 10000); // 10 second timeout
+
   try {
-    console.log("Fetching league standings from ibasketball.co.il...");
-    const response = await fetch(
-      "https://ibasketball.co.il/team/5458-%D7%91%D7%A0%D7%99-%D7%99%D7%94%D7%95%D7%93%D7%94-%D7%AA%D7%9C-%D7%90%D7%91%D7%99%D7%91/"
-    );
+    const response = await fetch(url, {
+      headers: {
+        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36"
+      },
+      signal: controller.signal
+    });
 
     if (!response.ok) {
-      throw new Error(`Failed to fetch standings: ${response.statusText}`);
+      throw new Error(`HTTP ${response.status}: ${response.statusText}`);
     }
 
-    const html = await response.text();
-    const $ = cheerio.load(html);
+    return await response.text();
+  } catch (error) {
+    console.warn(`Failed to fetch from ${url}:`, error);
+    throw error;
+  } finally {
+    clearTimeout(timeout);
+  }
+}
 
+async function fetchLeagueStandings(): Promise<LeagueTeam[]> {
+  console.log("Fetching league standings from ibasketball.co.il...");
+  
+  let lastError: Error | null = null;
+  let html: string | null = null;
+
+  // Try each URL in sequence
+  for (const url of LEAGUE_URLS) {
+    try {
+      html = await fetchFromUrl(url);
+      console.log(`✅ Successfully fetched from: ${url}`);
+      break; // Success, exit loop
+    } catch (error) {
+      lastError = error as Error;
+      console.warn(`Attempt failed for ${url}`);
+      // Continue to next URL
+    }
+  }
+
+  if (!html) {
+    throw new Error(
+      `Could not fetch league standings from any source. Last error: ${lastError?.message}`
+    );
+  }
+
+  try {
+    const $ = cheerio.load(html);
     const standings: LeagueTeam[] = [];
     const now = new Date().toISOString();
 
@@ -64,10 +111,14 @@ async function fetchLeagueStandings(): Promise<LeagueTeam[]> {
       }
     });
 
-    console.log(`Successfully fetched ${standings.length} teams`);
+    if (standings.length === 0) {
+      throw new Error("No league standings data found in HTML. Table structure may have changed.");
+    }
+
+    console.log(`✅ Successfully parsed ${standings.length} teams from league table`);
     return standings;
   } catch (error) {
-    console.error("Error fetching league standings:", error);
+    console.error("Error parsing league standings:", error);
     throw error;
   }
 }
@@ -80,8 +131,8 @@ async function updateLeagueStandings(standings: LeagueTeam[]) {
       .delete()
       .neq("id", 0);
 
-    if (deleteError) {
-      console.error("Error deleting old standings:", deleteError);
+    if (deleteError && deleteError.code !== "PGRST116") {
+      console.warn("Warning deleting old standings:", deleteError);
     }
 
     // Insert new standings
@@ -93,7 +144,7 @@ async function updateLeagueStandings(standings: LeagueTeam[]) {
       throw new Error(`Database error: ${insertError.message}`);
     }
 
-    console.log(`Successfully updated ${standings.length} teams in database`);
+    console.log(`✅ Successfully updated ${standings.length} teams in database`);
     return { success: true, count: standings.length, timestamp: new Date().toISOString() };
   } catch (error) {
     console.error("Error updating database:", error);

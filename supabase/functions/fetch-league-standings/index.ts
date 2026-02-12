@@ -17,19 +17,60 @@ const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
 const supabaseKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
 const supabase = createClient(supabaseUrl, supabaseKey);
 
-async function fetchLeagueStandings(): Promise<LeagueTeam[]> {
+// Multiple URLs to try (primary and alternatives with different domains/protocols)
+const LEAGUE_URLS = [
+  "https://ibasketball.co.il/team/5458-%D7%91%D7%A0%D7%99-%D7%99%D7%94%D7%95%D7%93%D7%94-%D7%AA%D7%9C-%D7%90%D7%91%D7%99%D7%91/",
+  "https://ibba.one.co.il/team/5458-%D7%91%D7%A0%D7%99-%D7%99%D7%94%D7%95%D7%93%D7%94-%D7%AA%D7%9C-%D7%90%D7%91%D7%99%D7%91/",
+  "http://ibasketball.co.il/team/5458-%D7%91%D7%A0%D7%99-%D7%99%D7%94%D7%95%D7%93%D7%94-%D7%AA%D7%9C-%D7%90%D7%91%D7%99%D7%91/",
+];
+
+async function fetchFromUrl(url: string): Promise<string> {
+  console.log(`Attempting to fetch from: ${url}`);
+  
   try {
-    const response = await fetch(
-      "https://ibasketball.co.il/team/5458-%D7%91%D7%A0%D7%99-%D7%99%D7%94%D7%95%D7%93%D7%94-%D7%AA%D7%9C-%D7%90%D7%91%D7%99%D7%91/"
-    );
+    const response = await fetch(url, {
+      headers: {
+        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36"
+      },
+      signal: AbortSignal.timeout(10000) // 10 second timeout
+    });
 
     if (!response.ok) {
-      throw new Error(`Failed to fetch standings: ${response.statusText}`);
+      throw new Error(`HTTP ${response.status}: ${response.statusText}`);
     }
 
-    const html = await response.text();
-    const $ = cheerio.load(html);
+    return await response.text();
+  } catch (error) {
+    console.warn(`Failed to fetch from ${url}:`, error.message);
+    throw error;
+  }
+}
 
+async function fetchLeagueStandings(): Promise<LeagueTeam[]> {
+  let lastError: Error | null = null;
+  let html: string | null = null;
+
+  // Try each URL in sequence
+  for (const url of LEAGUE_URLS) {
+    try {
+      html = await fetchFromUrl(url);
+      console.log(`Successfully fetched from: ${url}`);
+      break; // Success, exit loop
+    } catch (error) {
+      lastError = error as Error;
+      console.warn(`Attempt failed for ${url}`);
+      // Continue to next URL
+    }
+  }
+
+  if (!html) {
+    throw new Error(
+      `Could not fetch league standings from any source. Last error: ${lastError?.message}`
+    );
+  }
+
+  try {
+    const $ = cheerio.load(html);
     const standings: LeagueTeam[] = [];
     const now = new Date().toISOString();
 
@@ -60,9 +101,14 @@ async function fetchLeagueStandings(): Promise<LeagueTeam[]> {
       }
     });
 
+    if (standings.length === 0) {
+      throw new Error("No league standings data found in HTML. Table structure may have changed.");
+    }
+
+    console.log(`Successfully parsed ${standings.length} teams from league table`);
     return standings;
   } catch (error) {
-    console.error("Error fetching league standings:", error);
+    console.error("Error parsing league standings:", error);
     throw error;
   }
 }
@@ -70,18 +116,25 @@ async function fetchLeagueStandings(): Promise<LeagueTeam[]> {
 async function updateLeagueStandings(standings: LeagueTeam[]) {
   try {
     // Delete old standings
-    await supabase.from("league_standings").delete().select();
+    const { error: deleteError } = await supabase
+      .from("league_standings")
+      .delete()
+      .neq("id", 0);
+
+    if (deleteError && deleteError.code !== "PGRST116") {
+      console.warn("Warning deleting old standings:", deleteError);
+    }
 
     // Insert new standings
-    const { error } = await supabase
+    const { error: insertError } = await supabase
       .from("league_standings")
       .insert(standings);
 
-    if (error) {
-      throw new Error(`Database error: ${error.message}`);
+    if (insertError) {
+      throw new Error(`Database error: ${insertError.message}`);
     }
 
-    console.log(`Updated ${standings.length} teams in league standings`);
+    console.log(`✅ Updated ${standings.length} teams in league standings`);
     return { success: true, count: standings.length };
   } catch (error) {
     console.error("Error updating database:", error);
@@ -92,10 +145,14 @@ async function updateLeagueStandings(standings: LeagueTeam[]) {
 serve(async (req) => {
   // Only allow POST requests
   if (req.method !== "POST") {
-    return new Response("Method not allowed", { status: 405 });
+    return new Response(JSON.stringify({ error: "Method not allowed" }), { 
+      status: 405,
+      headers: { "Content-Type": "application/json" }
+    });
   }
 
   try {
+    console.log("Starting league standings update...");
     const standings = await fetchLeagueStandings();
     const result = await updateLeagueStandings(standings);
 
@@ -108,8 +165,12 @@ serve(async (req) => {
     return new Response(
       JSON.stringify({
         error: error instanceof Error ? error.message : "Unknown error",
+        type: error instanceof Error ? error.constructor.name : "Unknown",
       }),
-      { status: 500, headers: { "Content-Type": "application/json" } }
+      { 
+        status: 500, 
+        headers: { "Content-Type": "application/json" }
+      }
     );
   }
 });
