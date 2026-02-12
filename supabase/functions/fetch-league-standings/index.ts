@@ -85,83 +85,125 @@ async function fetchLeagueStandings(): Promise<LeagueTeam[]> {
 
     console.log(`\n📄 [DEBUG] HTML Body (first 1000 chars):\n${html.substring(0, 1000)}\n`);
 
-    // Log document structure
-    console.log(`📋 [STRUCTURE] Looking for tables...`);
+    // Find ALL tables and log their structure
+    console.log(`📋 [TABLES] Scanning all tables on page...`);
     const allTables = $("table");
-    console.log(`   Found ${allTables.length} <table> elements total`);
+    console.log(`   Total tables found: ${allTables.length}`);
 
-    // Try to find table with ID leagueStandings
-    console.log(`🎯 [SELECTOR] Trying: table#leagueStandings`);
-    let leagueTable = $("#leagueStandings");
-    console.log(`   Result: ${leagueTable.length} elements found`);
+    allTables.each((tableIndex, tableElement) => {
+      const table = $(tableElement);
+      console.log(`\n   📌 TABLE ${tableIndex}:`);
+      console.log(`      ID: "${table.attr("id")}"`);
+      console.log(`      Class: "${table.attr("class")}"`);
 
-    // If not found by ID, try by class
-    if (leagueTable.length === 0) {
-      console.log(`🎯 [SELECTOR] Trying: table[class*="standings"]`);
-      leagueTable = $("table[class*='standings']");
-      console.log(`   Result: ${leagueTable.length} elements found`);
-    }
+      // Get header row
+      const headerCells = table.find("thead tr th, thead tr td, tr:first th, tr:first td");
+      console.log(`      Headers (${headerCells.length} columns):`);
+      
+      const headers: string[] = [];
+      headerCells.each((colIndex, cell) => {
+        const headerText = $(cell).text().trim().substring(0, 30);
+        headers.push(headerText);
+        console.log(`        [Col ${colIndex}]: "${headerText}"`);
+      });
 
-    // If still not found, try common selectors
-    if (leagueTable.length === 0) {
-      console.log(`🎯 [SELECTOR] Trying: .leagueStandings, .league-standings, .standings-table`);
-      leagueTable = $(".leagueStandings, .league-standings, .standings-table");
-      console.log(`   Result: ${leagueTable.length} elements found`);
-    }
-
-    // If still nothing, use first table as fallback
-    if (leagueTable.length === 0) {
-      console.log(`⚠️  [FALLBACK] Using first table on page`);
-      leagueTable = $("table").first();
-      if (leagueTable.length > 0) {
-        console.log(`   Found table with id="${leagueTable.attr("id")}" class="${leagueTable.attr("class")}"`);
-      }
-    }
-
-    // Parse the league table
-    const rows = leagueTable.find("tbody tr, tr");
-    console.log(`📊 [ROWS] Found ${rows.length} rows in selected table`);
-
-    if (rows.length === 0) {
-      console.log(`❌ No rows found. Showing table HTML:`);
-      console.log(leagueTable.html()?.substring(0, 500));
-    }
-
-    rows.each((index, element) => {
-      const cells = $(element).find("td, th");
-
-      if (cells.length >= 6) {
-        const position = parseInt($(cells[0]).text().trim()) || 0;
-        const name = $(cells[1]).text().trim();
-        const gamesPlayed = parseInt($(cells[2]).text().trim()) || 0;
-        const wins = parseInt($(cells[3]).text().trim()) || 0;
-        const losses = parseInt($(cells[4]).text().trim()) || 0;
-        const points = parseInt($(cells[5]).text().trim()) || 0;
-
-        if (name && position > 0) {
-          standings.push({
-            position,
-            name,
-            gamesPlayed,
-            wins,
-            losses,
-            points,
-            updatedAt: now,
+      // If no headers found in thead, try first row
+      if (headers.length === 0) {
+        const firstRow = table.find("tbody tr").first();
+        if (firstRow.length > 0) {
+          const firstRowCells = firstRow.find("td, th");
+          console.log(`      First row (${firstRowCells.length} columns - may be data):`);
+          firstRowCells.each((colIndex, cell) => {
+            const cellText = $(cell).text().trim().substring(0, 30);
+            console.log(`        [Col ${colIndex}]: "${cellText}"`);
           });
+        }
+      }
 
-          // Log first few rows
-          if (standings.length <= 3) {
-            console.log(`   ✓ Row ${index}: [${position}] ${name} | G=${gamesPlayed} W=${wins} L=${losses} P=${points}`);
+      // Count data rows
+      const dataRows = table.find("tbody tr").length;
+      console.log(`      Data rows: ${dataRows}`);
+    });
+
+    // Now try to parse the most likely table
+    console.log(`\n🔍 [PARSING] Attempting to parse tables...`);
+    
+    allTables.each((tableIndex, tableElement) => {
+      const table = $(tableElement);
+      const rows = table.find("tbody tr");
+      
+      if (rows.length === 0) {
+        console.log(`   ⚠️  Table ${tableIndex} has no tbody rows, skipping`);
+        return;
+      }
+
+      console.log(`   Trying table ${tableIndex}...`);
+      let foundTeams = 0;
+
+      rows.each((rowIndex, element) => {
+        const cells = $(element).find("td");
+        
+        if (cells.length < 3) return;
+
+        const cellTexts = cells.map((_, cell) => $(cell).text().trim()).get();
+        
+        // Try to detect if first column is a position number
+        const firstColNum = parseInt(cellTexts[0]);
+        
+        if (firstColNum >= 1 && firstColNum <= 50) {
+          const position = firstColNum;
+          const name = cellTexts[1] || "";
+          
+          if (name && name.length > 1) {
+            // Try to extract numbers from remaining cells
+            let wins = 0;
+            let losses = 0;
+            let gamesPlayed = 0;
+            let points = 0;
+
+            // Parse remaining columns
+            if (cellTexts.length >= 5) {
+              wins = parseInt(cellTexts[2]) || 0;
+              losses = parseInt(cellTexts[3]) || 0;
+              points = parseInt(cellTexts[4]) || 0;
+              gamesPlayed = wins + losses;
+            } else if (cellTexts.length >= 4) {
+              wins = parseInt(cellTexts[2]) || 0;
+              losses = parseInt(cellTexts[3]) || 0;
+              gamesPlayed = wins + losses;
+            }
+
+            standings.push({
+              position,
+              name,
+              gamesPlayed,
+              wins,
+              losses,
+              points,
+              updatedAt: now,
+            });
+            foundTeams++;
+
+            // Log first 3 teams found
+            if (foundTeams <= 3) {
+              console.log(`      ✓ Row ${rowIndex}: [${position}] ${name} | W=${wins} L=${losses}`);
+            }
           }
         }
+      });
+
+      if (foundTeams > 0) {
+        console.log(`   ✅ Table ${tableIndex} yielded ${foundTeams} teams - using this table!`);
       }
     });
 
     if (standings.length === 0) {
-      throw new Error("No league standings data found in HTML. Check logs for table structure.");
+      console.log(`\n❌ [ERROR] No teams found in any table`);
+      console.log(`Full HTML for analysis:\n${html}`);
+      throw new Error("No league standings data found. Check logs for table structure.");
     }
 
-    console.log(`\n✅ Successfully parsed ${standings.length} teams from league table`);
+    console.log(`\n✅ Successfully parsed ${standings.length} teams total`);
     return standings;
   } catch (error) {
     console.error("Error parsing league standings:", error);
