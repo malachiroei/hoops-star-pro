@@ -1,11 +1,39 @@
-import { Star, Hash } from "lucide-react";
+import { useState, useEffect } from "react";
+import { Star, Hash, Loader2 } from "lucide-react";
 import { GamePrep } from "./GamePrep";
-import leagueData from "../data/leagueData.json";
-
-const { standings, players: allPlayers } = leagueData;
-const topScorers = allPlayers.slice(0, 3);
+import { supabase } from "@/integrations/supabase/client";
 
 export function HomeTab() {
+  const [standings, setStandings] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    async function fetchStandings() {
+      try {
+        const { data, error } = await supabase
+          .from('league_standings')
+          .select('*')
+          .order('points', { ascending: false });
+
+        if (error) throw error;
+        setStandings(data || []);
+      } catch (error) {
+        console.error("Error fetching standings:", error);
+      } finally {
+        setLoading(false);
+      }
+    }
+    fetchStandings();
+  }, []);
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center min-h-[400px]">
+        <Loader2 className="w-8 h-8 animate-spin text-primary" />
+      </div>
+    );
+  }
+
   return (
     <div className="px-4 py-6 animate-fade-in">
       {/* Header */}
@@ -24,7 +52,7 @@ export function HomeTab() {
         </div>
         <div>
           <h2 className="text-xl font-display uppercase text-foreground">טבלת ליגה</h2>
-          <p className="text-sm text-muted-foreground">League Standings</p>
+          <p className="text-sm text-muted-foreground">League Standings (Live)</p>
         </div>
       </div>
 
@@ -39,12 +67,12 @@ export function HomeTab() {
         <div className="col-span-2 text-xs text-muted-foreground font-medium text-center">PTS</div>
       </div>
 
-      {/* Standings Cards */}
+      {/* Standings Cards - Now Live from Supabase! */}
       <div className="space-y-2 mb-6">
-        {standings.map((team) => (
+        {standings.map((team, index) => (
           <div
-            key={team.rank}
-            className={`glass-card rounded-xl p-3 transition-all duration-300 ${team.isUs
+            key={team.id}
+            className={`glass-card rounded-xl p-3 transition-all duration-300 ${team.is_us
               ? "border-2 border-primary glow-border animate-pulse-glow"
               : "border border-border/30 hover:border-border/60"
               }`}
@@ -52,9 +80,9 @@ export function HomeTab() {
             <div className="grid grid-cols-12 gap-2 items-center">
               {/* Rank */}
               <div className="col-span-1 flex items-center justify-center">
-                <span className={`text-lg font-display font-black ${team.rank === 1 ? "text-primary glow-text" : team.isUs ? "text-primary" : "text-foreground"
+                <span className={`text-lg font-display font-black ${index === 0 ? "text-primary glow-text" : team.is_us ? "text-primary" : "text-foreground"
                   }`}>
-                  {team.rank}
+                  {index + 1}
                 </span>
               </div>
 
@@ -63,19 +91,19 @@ export function HomeTab() {
                 <div
                   className="w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold flex-shrink-0 shadow-lg"
                   style={{
-                    background: `linear-gradient(135deg, ${team.color}, ${team.color}88)`,
-                    boxShadow: `0 0 12px ${team.color}40`
+                    background: `linear-gradient(135deg, ${team.color || '#ff6b00'}, ${(team.color || '#ff6b00')}88)`,
+                    boxShadow: `0 0 12px ${(team.color || '#ff6b00')}40`
                   }}
                 >
                   <span className="text-white font-display drop-shadow-md">
-                    {team.team.charAt(0)}
+                    {(team.team_name || team.team || "").charAt(0)}
                   </span>
                 </div>
                 <div className="min-w-0 flex-1">
-                  <p className={`font-medium text-xs leading-tight ${team.isUs ? "text-primary" : "text-foreground"}`}>
-                    {team.team}
+                  <p className={`font-medium text-xs leading-tight ${team.is_us ? "text-primary" : "text-foreground"}`}>
+                    {team.team_name || team.team}
                   </p>
-                  {team.isUs && (
+                  {team.is_us && (
                     <div className="flex items-center gap-1 mt-0.5">
                       <Star className="text-primary fill-primary" size={10} />
                       <span className="text-[10px] text-primary">הקבוצה שלנו</span>
@@ -84,72 +112,16 @@ export function HomeTab() {
                 </div>
               </div>
 
-              {/* Wins - Highlighted */}
-              <div className="col-span-2 text-center">
-                <span className="text-lg font-display font-black text-primary">
-                  {team.wins}
-                </span>
-              </div>
-
-              {/* Losses */}
-              <div className="col-span-2 text-center">
-                <span className="text-lg font-display font-black text-destructive">
-                  {team.losses}
-                </span>
-              </div>
-
-              {/* Points */}
-              <div className="col-span-2 text-center">
-                <span className={`text-lg font-display font-black ${team.isUs ? "text-primary glow-text" : "text-foreground"
-                  }`}>
-                  {team.points}
-                </span>
-              </div>
+              <div className="col-span-2 text-center text-lg font-display font-black text-primary">{team.wins}</div>
+              <div className="col-span-2 text-center text-lg font-display font-black text-destructive">{team.losses}</div>
+              <div className="col-span-2 text-center text-lg font-display font-black text-foreground">{team.points}</div>
             </div>
           </div>
         ))}
       </div>
 
-      {/* Top Scorers Mini Leaderboard */}
-      <div className="stat-card rounded-2xl p-4 mb-6">
-        <div className="flex items-center justify-between mb-3">
-          <h3 className="font-display text-foreground flex items-center gap-2">
-            <Star className="text-primary" size={18} />
-            מובילי הליגה בנקודות
-          </h3>
-          <span className="text-xs text-muted-foreground">Top Scorers</span>
-        </div>
-        <div className="space-y-2">
-          {topScorers.map((player) => (
-            <div key={player.rank} className="flex items-center justify-between py-2 px-3 rounded-lg bg-surface-elevated/30">
-              <div className="flex items-center gap-3">
-                <span className={`text-sm font-display ${player.rank === 1 ? "text-primary" : "text-muted-foreground"}`}>
-                  {player.rank}
-                </span>
-                <div>
-                  <p className={`text-sm font-medium ${player.name === "רביד מלאכי" ? "text-primary" : "text-foreground"}`}>
-                    {player.name}
-                  </p>
-                  <p className="text-xs text-muted-foreground">{player.team}</p>
-                </div>
-              </div>
-              <div className="text-left">
-                <p className={`font-display ${player.name === "רביד מלאכי" ? "text-primary glow-text" : "text-foreground"}`}>
-                  {player.ppg}
-                </p>
-                <p className="text-xs text-muted-foreground">PPG</p>
-              </div>
-            </div>
-          ))}
-        </div>
-      </div>
-
-      {/* Game Prep Section */}
       <GamePrep />
-
-      {/* Bottom Spacing */}
       <div className="h-8" />
     </div>
   );
 }
-
