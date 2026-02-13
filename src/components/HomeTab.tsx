@@ -10,12 +10,14 @@ export function HomeTab() {
   useEffect(() => {
     async function fetchStandings() {
       try {
+        console.log("Attempting to fetch standings...");
         const { data, error } = await supabase
           .from('league_standings')
           .select('*')
           .order('points', { ascending: false });
 
         if (error) throw error;
+        console.log("Data fetched successfully:", data);
         setStandings(data || []);
       } catch (error) {
         console.error("Error fetching standings:", error);
@@ -45,13 +47,13 @@ export function HomeTab() {
         <p className="text-muted-foreground mt-1">ליגת כדורסל נוער • Youth Basketball</p>
       </div>
 
-      {/* League Title */}
+      {/* League Title - כאן השינוי שביקשת */}
       <div className="flex items-center gap-3 mb-4">
         <div className="w-10 h-10 rounded-xl orange-gradient-bg flex items-center justify-center shadow-glow">
           <img src="/basketball.svg" alt="Basketball" className="w-5 h-5" />
         </div>
         <div>
-          <h2 className="text-xl font-display uppercase text-foreground">טבלת ליגה</h2>
+          <h2 className="text-xl font-display uppercase text-foreground">טבלת ליגה ילדים א תל אביב</h2>
           <p className="text-sm text-muted-foreground">League Standings (Live)</p>
         </div>
       </div>
@@ -67,57 +69,70 @@ export function HomeTab() {
         <div className="col-span-2 text-xs text-muted-foreground font-medium text-center">PTS</div>
       </div>
 
-      {/* Standings Cards - Now Live from Supabase! */}
+      {/* Standings Cards */}
       <div className="space-y-2 mb-6">
-        {standings.map((team, index) => (
-          <div
-            key={team.id}
-            className={`glass-card rounded-xl p-3 transition-all duration-300 ${team.is_us
-              ? "border-2 border-primary glow-border animate-pulse-glow"
-              : "border border-border/30 hover:border-border/60"
-              }`}
-          >
-            <div className="grid grid-cols-12 gap-2 items-center">
-              {/* Rank */}
-              <div className="col-span-1 flex items-center justify-center">
-                <span className={`text-lg font-display font-black ${index === 0 ? "text-primary glow-text" : team.is_us ? "text-primary" : "text-foreground"
-                  }`}>
-                  {index + 1}
-                </span>
-              </div>
-
-              {/* Team with Logo */}
-              <div className="col-span-5 flex items-center gap-2">
-                <div
-                  className="w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold flex-shrink-0 shadow-lg"
-                  style={{
-                    background: `linear-gradient(135deg, ${team.color || '#ff6b00'}, ${(team.color || '#ff6b00')}88)`,
-                    boxShadow: `0 0 12px ${(team.color || '#ff6b00')}40`
-                  }}
-                >
-                  <span className="text-white font-display drop-shadow-md">
-                    {(team.team_name || team.team || "").charAt(0)}
-                  </span>
-                </div>
-                <div className="min-w-0 flex-1">
-                  <p className={`font-medium text-xs leading-tight ${team.is_us ? "text-primary" : "text-foreground"}`}>
-                    {team.team_name || team.team}
-                  </p>
-                  {team.is_us && (
-                    <div className="flex items-center gap-1 mt-0.5">
-                      <Star className="text-primary fill-primary" size={10} />
-                      <span className="text-[10px] text-primary">הקבוצה שלנו</span>
-                    </div>
-                  )}
-                </div>
-              </div>
-
-              <div className="col-span-2 text-center text-lg font-display font-black text-primary">{team.wins}</div>
-              <div className="col-span-2 text-center text-lg font-display font-black text-destructive">{team.losses}</div>
-              <div className="col-span-2 text-center text-lg font-display font-black text-foreground">{team.points}</div>
-            </div>
+        {standings.length === 0 ? (
+          <div className="text-center py-10 glass-card rounded-xl border border-dashed border-border">
+            <p className="text-muted-foreground">לא נמצאו נתונים בטבלה</p>
           </div>
-        ))}
+        ) : (
+          standings.map((team, index) => {
+            const isOurTeam = team.name?.includes("בני יהודה") || team.name?.includes("רביד");
+            
+            return (
+              <div
+                key={team.id}
+                className={`glass-card rounded-xl p-3 transition-all duration-300 ${isOurTeam
+                  ? "border-2 border-primary glow-border animate-pulse-glow"
+                  : "border border-border/30 hover:border-border/60"
+                  }`}
+              >
+                <div className="grid grid-cols-12 gap-2 items-center">
+                  <div className="col-span-1 flex items-center justify-center">
+                    <span className={`text-lg font-display font-black ${index === 0 ? "text-primary glow-text" : isOurTeam ? "text-primary" : "text-foreground"}`}>
+                      {index + 1}
+                    </span>
+                  </div>
+
+                  <div className="col-span-5 flex items-center gap-2">
+                    <div
+                      className="w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold flex-shrink-0 shadow-lg"
+                      style={{
+                        background: `linear-gradient(135deg, #ff6b00, #ff9e00)`,
+                        boxShadow: `0 0 12px rgba(255, 107, 0, 0.2)`
+                      }}
+                    >
+                      <span className="text-white font-display drop-shadow-md">
+                        {(team.name || "").charAt(0)}
+                      </span>
+                    </div>
+                    <div className="min-w-0 flex-1">
+                      <p className={`font-medium text-xs leading-tight ${isOurTeam ? "text-primary" : "text-foreground"}`}>
+                        {team.name}
+                      </p>
+                      {isOurTeam && (
+                        <div className="flex items-center gap-1 mt-0.5">
+                          <Star className="text-primary fill-primary" size={10} />
+                          <span className="text-[10px] text-primary font-bold">הקבוצה שלנו</span>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+
+                  <div className="col-span-2 text-center text-lg font-display font-black text-primary">
+                    {team.wins}
+                  </div>
+                  <div className="col-span-2 text-center text-lg font-display font-black text-destructive">
+                    {team.losses}
+                  </div>
+                  <div className="col-span-2 text-center text-lg font-display font-black text-foreground">
+                    {team.points}
+                  </div>
+                </div>
+              </div>
+            );
+          })
+        )}
       </div>
 
       <GamePrep />
