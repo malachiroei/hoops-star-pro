@@ -1,4 +1,5 @@
 name: Update League Standings
+
 on:
   schedule:
     - cron: '0 4 * * *'
@@ -16,8 +17,6 @@ jobs:
       - name: Install dependencies
         run: npm install
       - name: Run Scraper
-        run: |
-          ls -R
         run: npx tsx scripts/scrape-league-standings.ts
         env:
           VITE_SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL }}
