@@ -1,8 +1,8 @@
 name: Update League Standings
 on:
   schedule:
-    - cron: '0 4 * * *' # רץ כל יום ב-4 בבוקר
-  workflow_dispatch: 
+    - cron: '0 4 * * *'
+  workflow_dispatch:
 
 jobs:
   update-data:
@@ -16,7 +16,7 @@ jobs:
       - name: Install dependencies
         run: npm install
       - name: Run Scraper
-       run: npx tsx src/scripts/scrape-standings.ts
+        run: npx tsx src/scripts/scrape-standings.ts
         env:
           VITE_SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL }}
           VITE_SUPABASE_ANON_KEY: ${{ secrets.VITE_SUPABASE_ANON_KEY }}
