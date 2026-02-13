@@ -18,7 +18,7 @@ jobs:
       - name: Run Scraper
         run: |
           ls -R
-          npx tsx scripts/scrape-standings.ts
+        run: npx tsx scripts/scrape-league-standings.ts
         env:
           VITE_SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL }}
           VITE_SUPABASE_ANON_KEY: ${{ secrets.VITE_SUPABASE_ANON_KEY }}
