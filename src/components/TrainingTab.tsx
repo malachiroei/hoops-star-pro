@@ -72,7 +72,7 @@ const mealRecommendations: MealRecommendation[] = [
   },
   {
     id: "snacks",
-    title: "נשנושים בריאים", 
+    title: "נשנושים בריאים!", 
     description: "בוסט מהיר: פרי (בננה/תפוח), חופן שקדים ואגוזים, או חטיף חלבון איכותי לפני אימון.",
     image: mealSnacks,
     icon: <Cookie size={18} />,
