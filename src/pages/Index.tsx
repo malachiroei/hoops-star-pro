@@ -2,12 +2,14 @@ import { useState } from "react";
 import { HomeTab } from "@/components/HomeTab";
 import { GamesTab } from "@/components/GamesTab";
 import StatsTab from "@/components/StatsTab";
-import TrainingTab from "@/components/TrainingTab";
+import TrainingTab from "@/components/Training/TrainingTab"; // הוספתי /Training/
 import ProfileTab from "@/components/ProfileTab";
-import CoachTab from "@/components/AICoach/CoachTab"; // שים לב לנתיב המיוחד
-import { BottomNav } from "@/components/BottomNav"; const [activeTab, setActiveTab] = useState("home");
+import CoachTab from "@/components/AICoach/CoachTab";     // נתיב לתיקיית AICoach
+import { BottomNav } from "@/components/BottomNav";
 
-  // פונקציה לבחירת התוכן להצגה לפי הטאב הנבחר
+const Index = () => {
+  const [activeTab, setActiveTab] = useState("home");
+
   const renderContent = () => {
     switch (activeTab) {
       case "home":
@@ -29,15 +31,11 @@ import { BottomNav } from "@/components/BottomNav"; const [activeTab, setActiveT
 
   return (
     <div className="min-h-screen bg-background text-foreground pb-24">
-      {/* התוכן המשתנה */}
       <main>
         {renderContent()}
       </main>
-
-      {/* תפריט ניווט תחתון */}
       <BottomNav activeTab={activeTab} onTabChange={setActiveTab} />
     </div>
   );
 };
 
-export default Index;
