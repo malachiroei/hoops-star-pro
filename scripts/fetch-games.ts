@@ -1,5 +1,6 @@
 import { createClient } from '@supabase/supabase-js';
 import axios from 'axios';
+import qs from 'qs';
 
 const supabase = createClient(
   process.env.SUPABASE_URL!,
@@ -8,34 +9,29 @@ const supabase = createClient(
 
 async function fetchLeagueGames() {
   try {
-    console.log("🏀 שולף נתונים גולמיים משרת האיגוד...");
+    console.log("🏀 מושך נתונים מליגה 270 (ילדים א' תל אביב)...");
     
-    // שליחת בקשת POST בדיוק כמו שהאתר עושה כשהוא טוען את הטבלה
-    const formData = new FormData();
-    formData.append('action', 'get_league_games');
-    formData.append('league_id', '270');
-    formData.append('season', '2025');
+    // שימוש ב-URLSearchParams כדי לדמות שליחת טופס דפדפן מדויקת
+    const data = qs.stringify({
+      'action': 'get_league_games',
+      'league_id': '270',
+      'season': '2025' 
+    });
 
-    const response = await axios.post('https://ibasketball.co.il/wp-admin/admin-ajax.php', 
-      formData,
-      {
-        headers: {
-          'Content-Type': 'multipart/form-data',
-          'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/121.0.0.0 Safari/537.36'
-        }
+    const response = await axios.post('https://ibasketball.co.il/wp-admin/admin-ajax.php', data, {
+      headers: { 
+        'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8',
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/121.0.0.0 Safari/537.36',
+        'X-Requested-With': 'XMLHttpRequest'
       }
-    );
+    });
 
-    // בדיקה אם חזר HTML במקום JSON (קורה לפעמים כשנחסמים)
-    if (typeof response.data === 'string' && response.data.includes('<table')) {
-       console.log("⚠️ השרת החזיר HTML. מנסה לחלץ נתונים מהטבלה...");
-       // כאן נשארת לוגיקת החילוץ מה-HTML כגיבוי
+    if (!response.data || !response.data.games) {
+      console.log("Response data:", response.data);
+      throw new Error("השרת לא החזיר רשימת משחקים.");
     }
 
-    const gamesData = response.data.games || [];
-    console.log(`🔍 נמצאו ${gamesData.length} משחקים במערכת.`);
-
-    const formattedGames = gamesData.map((g: any) => {
+    const games = response.data.games.map((g: any) => {
       const [day, month, year] = g.date.split('/');
       return {
         game_date: `20${year}-${month}-${day}T${g.time || '00:00'}:00Z`,
@@ -47,12 +43,14 @@ async function fetchLeagueGames() {
       };
     });
 
-    // עדכון Supabase
-    await supabase.from('games').delete().neq('home_team', 'FORCE_DELETE');
-    const { error } = await supabase.from('games').insert(formattedGames);
+    console.log(`✅ הצלחנו! נמצאו ${games.length} משחקים.`);
+
+    // ניקוי והכנסה ל-Supabase
+    await supabase.from('games').delete().neq('home_team', 'CLEANUP');
+    const { error } = await supabase.from('games').insert(games);
     
     if (error) throw error;
-    console.log("🚀 הסנכרון ל-Supabase הושלם בהצלחה!");
+    console.log("🚀 טבלת המשחקים עודכנה בהצלחה!");
 
   } catch (err) {
     console.error("❌ תקלה:", err.message);
