@@ -1,12 +1,11 @@
 import { useState } from "react";
 import { HomeTab } from "@/components/HomeTab";
 import { GamesTab } from "@/components/GamesTab";
-import { StatsTab } from "@/components/StatsTab";     // ייבוא מחדש
-import { TrainingTab } from "@/components/TrainingTab"; // ייבוא מחדש
-import { CoachTab } from "@/components/CoachTab";       // ייבוא מחדש
-import { ProfileTab } from "@/components/ProfileTab";   // ייבוא מחדש
+import StatsTab from "@/components/StatsTab";     // בלי סוגריים מסולסלים
+import TrainingTab from "@/components/TrainingTab"; // בלי סוגריים מסולסלים
+import CoachTab from "@/components/CoachTab";       // בלי סוגריים מסולסלים
+import ProfileTab from "@/components/ProfileTab";   // בלי סוגריים מסולסלים
 import { BottomNav } from "@/components/BottomNav";
-
 const Index = () => {
   const [activeTab, setActiveTab] = useState("home");
 
