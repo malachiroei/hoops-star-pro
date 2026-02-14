@@ -32,11 +32,11 @@ jobs:
           echo "Find scraper candidates:"
           find . -maxdepth 4 -type f -name "*scrape*stand*.*" -print || true
 
-      - name: Run Scraper
+            - name: Run Scraper
         shell: bash
         run: |
           set -e
-          SCRIPT="scripts/scrape-league-standings.ts"
+          SCRIPT="scripts/update-league-standings.ts"
           if [ ! -f "$SCRIPT" ]; then
             echo "❌ Script not found at: $SCRIPT"
             echo "Files under scripts:"
