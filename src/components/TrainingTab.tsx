@@ -202,14 +202,15 @@ export const TrainingTab = () => {
   const totalCount = exercises.length;
   const progress = (completedCount / totalCount) * 100;
 
-  return (
+return (
     <div className="p-4 space-y-6">
-      <div className="text-center space-y-2">
+      {/* Header - גרסת ניסוי סגולה */}
+      <div className="text-center space-y-2 border-2 border-purple-500 rounded-lg p-3 bg-purple-500/10">
         <h1 className="text-2xl font-bold font-display">
-          <span className="text-gradient">תוכנית אימונים</span>
+          <span className="text-purple-400">תוכנית אימונים - גרסת ניסוי 🧪</span>
         </h1>
-        <p className="text-muted-foreground text-sm">
-          אימון כושר יומי למצוינות במגרש
+        <p className="text-purple-200/70 text-sm font-bold">
+          סביבת עבודה: test-env
         </p>
       </div>
 
