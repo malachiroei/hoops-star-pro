@@ -88,7 +88,7 @@ export function LeagueTable() {
               <TableRow>
                 <TableHead className="text-right">מיקום</TableHead>
                 <TableHead className="text-right">קבוצה</TableHead>
-                <TableHead className="text-center">מש׳</TableHead>
+                <TableHead className="text-center font-bold text-blue-600">מש׳</TableHead>
                 <TableHead className="text-center">ניצ׳</TableHead>
                 <TableHead className="text-center">הפ׳</TableHead>
                 <TableHead className="text-center">נק׳</TableHead>
@@ -96,16 +96,22 @@ export function LeagueTable() {
             </TableHeader>
             <TableBody>
               {standings && standings.length > 0 ? (
-                standings.map((team) => (
-                  <TableRow key={team.id}>
-                    <TableCell className="font-bold text-primary">{team.position}</TableCell>
-                    <TableCell className="text-right font-medium">{team.name}</TableCell>
-                    <TableCell className="text-center">{team.gamesPlayed}</TableCell>
-                    <TableCell className="text-center text-emerald-500 font-semibold">{team.wins}</TableCell>
-                    <TableCell className="text-center text-red-500 font-semibold">{team.losses}</TableCell>
-                    <TableCell className="text-center font-bold">{team.points}</TableCell>
-                  </TableRow>
-                ))
+                standings.map((team) => {
+                  // --- חישוב מספר המשחקים (ניצחונות + הפסדים) ---
+                  const calculatedGamesPlayed = (team.wins || 0) + (team.losses || 0);
+                  
+                  return (
+                    <TableRow key={team.id}>
+                      <TableCell className="font-bold text-primary">{team.position}</TableCell>
+                      <TableCell className="text-right font-medium">{team.name}</TableCell>
+                      {/* הצגת הערך המחושב */}
+                      <TableCell className="text-center font-bold text-blue-600">{calculatedGamesPlayed}</TableCell>
+                      <TableCell className="text-center text-emerald-500 font-semibold">{team.wins}</TableCell>
+                      <TableCell className="text-center text-red-500 font-semibold">{team.losses}</TableCell>
+                      <TableCell className="text-center font-bold">{team.points}</TableCell>
+                    </TableRow>
+                  );
+                })
               ) : (
                 <TableRow>
                   <TableCell colSpan={6} className="text-center py-8 text-gray-500">
@@ -125,4 +131,3 @@ export function LeagueTable() {
     </Card>
   );
 }
-
