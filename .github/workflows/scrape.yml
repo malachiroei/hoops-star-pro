@@ -2,25 +2,32 @@ name: Update League Standings
 
 on:
   schedule:
-    - cron: '0 4 * * *'
+    - cron: "0 4 * * *"
   workflow_dispatch:
 
 jobs:
   update-data:
     runs-on: ubuntu-latest
+
     steps:
-      - uses: actions/checkout@v3
+      - name: Checkout
+        uses: actions/checkout@v4
 
       - name: Setup Node.js
-        uses: actions/setup-node@v3
+        uses: actions/setup-node@v4
         with:
-          node-version: '18'
+          node-version: "18"
+          cache: "npm"
 
       - name: Install dependencies
-        run: npm install
+        run: npm ci
 
-      - name: Run Scraper
-        run: npx tsx src/scripts/scrape-league-standings.ts
-        env:
-          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
-          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+      - name: Debug scraper path
+        run: |
+          echo "PWD: $(pwd)"
+          echo "Listing src:"
+          ls -la src || true
+          echo "Listing src/scripts:"
+          ls -la src/scripts || true
+          echo "Find scraper candidates:"
+          find src -maxdepth 5 -type f -name "*scrape*
