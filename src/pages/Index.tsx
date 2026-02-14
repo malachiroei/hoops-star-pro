@@ -1,15 +1,12 @@
 import { useState } from "react";
 import { HomeTab } from "@/components/HomeTab";
-import { GamesTab } from "@/components/GamesTab";
-import StatsTab from "@/components/StatsTab";
-import TrainingTab from "@/components/Training/TrainingTab";
-import ProfileTab from "@/components/ProfileTab";
-import CoachTab from "@/components/AICoach/CoachTab";
+import { GamesTab } from "@/components/GamesTab"; // ייבוא הקומפוננטה החדשה
 import { BottomNav } from "@/components/BottomNav";
 
 const Index = () => {
   const [activeTab, setActiveTab] = useState("home");
 
+  // פונקציה לבחירת התוכן להצגה לפי הטאב הנבחר
   const renderContent = () => {
     switch (activeTab) {
       case "home":
@@ -17,13 +14,13 @@ const Index = () => {
       case "games":
         return <GamesTab />;
       case "stats":
-        return <StatsTab />;
+        return <div className="p-8 text-center text-muted-foreground">סטטיסטיקות (בקרוב)</div>;
       case "training":
-        return <TrainingTab />;
+        return <div className="p-8 text-center text-muted-foreground">תוכניות אימונים (בקרוב)</div>;
       case "coach":
-        return <CoachTab />;
+        return <div className="p-8 text-center text-muted-foreground">מאמן AI אישי (בקרוב)</div>;
       case "profile":
-        return <ProfileTab />;
+        return <div className="p-8 text-center text-muted-foreground">פרופיל שחקן (בקרוב)</div>;
       default:
         return <HomeTab />;
     }
@@ -31,9 +28,12 @@ const Index = () => {
 
   return (
     <div className="min-h-screen bg-background text-foreground pb-24">
+      {/* התוכן המשתנה */}
       <main>
         {renderContent()}
       </main>
+
+      {/* תפריט ניווט תחתון */}
       <BottomNav activeTab={activeTab} onTabChange={setActiveTab} />
     </div>
   );
