@@ -25,9 +25,25 @@ jobs:
       - name: Debug scraper path
         run: |
           echo "PWD: $(pwd)"
-          echo "Listing src:"
-          ls -la src || true
-          echo "Listing src/scripts:"
-          ls -la src/scripts || true
+          echo "Top-level files:"
+          ls -la
+          echo "scripts folder:"
+          ls -la scripts || true
           echo "Find scraper candidates:"
-          find src -maxdepth 5 -type f -name "*scrape*
+          find . -maxdepth 4 -type f -name "*scrape*stand*.*" -print || true
+
+      - name: Run Scraper
+        shell: bash
+        run: |
+          set -e
+          SCRIPT="scripts/scrape-league-standings.ts"
+          if [ ! -f "$SCRIPT" ]; then
+            echo "❌ Script not found at: $SCRIPT"
+            echo "Files under scripts:"
+            ls -la scripts || true
+            exit 1
+          fi
+          npx tsx "$SCRIPT"
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
