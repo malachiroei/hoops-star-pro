@@ -1,6 +1,5 @@
 import { createClient } from '@supabase/supabase-js';
 import axios from 'axios';
-import * as cheerio from 'cheerio';
 
 const supabase = createClient(
   process.env.SUPABASE_URL!,
@@ -9,70 +8,50 @@ const supabase = createClient(
 
 async function fetchLeagueGames() {
   try {
-    const url = 'https://ibasketball.co.il/league/2025-270/#gsc.tab=0';
-    console.log("🏀 מתחיל סריקה מהכתובת:", url);
+    console.log("🏀 מושך נתונים ישירות מה-API של איגוד הכדורסל...");
     
-    const { data } = await axios.get(url);
-    const $ = cheerio.load(data);
-    const games: any[] = [];
-
-    // נסיון למצוא את שורות הטבלה לפי כמה סלקטורים אפשריים
-    const rows = $('.league-games-table tbody tr, table tr').filter((_, el) => {
-      return $(el).find('td').length >= 5;
-    });
-
-    console.log(`🔍 נמצאו ${rows.length} שורות פוטנציאליות בטבלה`);
-
-    rows.each((_, el) => {
-      const cells = $(el).find('td');
-      
-      const dateStr = $(cells[0]).text().trim();
-      const timeStr = $(cells[1]).text().trim();
-      const homeTeam = $(cells[3]).text().trim();
-      const awayTeam = $(cells[4]).text().trim();
-      const score = $(cells[5]).text().trim();
-
-      if (!homeTeam || !awayTeam || homeTeam === 'מארחת') return;
-
-      // המרת תאריך
-      const dateParts = dateStr.split('/');
-      if (dateParts.length < 3) return;
-      const isoDate = `20${dateParts[2]}-${dateParts[1]}-${dateParts[0]}T${timeStr || '00:00'}:00Z`;
-
-      let hScore = 0, aScore = 0;
-      if (score.includes('-')) {
-        const parts = score.split('-').map(s => parseInt(s.trim()));
-        aScore = parts[0] || 0;
-        hScore = parts[1] || 0;
+    // שליחת בקשה ישירה לשרת של האיגוד לקבלת לוח המשחקים של ליגה 270
+    const response = await axios.post('https://ibasketball.co.il/wp-admin/admin-ajax.php', 
+      new URLSearchParams({
+        action: 'get_league_games',
+        league_id: '270',
+        season: '2025'
+      }), {
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' }
       }
+    );
 
-      games.push({
-        game_date: isoDate,
-        home_team: homeTeam,
-        away_team: awayTeam,
-        home_score: hScore,
-        away_score: aScore,
-        location: 'אולם ספורט'
-      });
-    });
-
-    if (games.length === 0) {
-      throw new Error("לא נמצאו משחקים! ייתכן שהסלקטור של הטבלה השתנה.");
+    if (!response.data || !Array.isArray(response.data.games)) {
+      throw new Error("השרת של האיגוד החזיר תשובה לא תקינה");
     }
 
-    console.log(`✅ נמצאו ${games.length} משחקים. מעדכן את Supabase...`);
+    const games = response.data.games.map((g: any) => {
+      // המרת התאריך לפורמט ISO תקין
+      const [day, month, year] = g.date.split('/');
+      const isoDate = `20${year}-${month}-${day}T${g.time || '00:00'}:00Z`;
 
-    // מחיקה והכנסה מחדש
-    const { error: delErr } = await supabase.from('games').delete().not('id', 'is', null);
-    if (delErr) console.error("שגיאה במחיקה:", delErr);
+      return {
+        game_date: isoDate,
+        home_team: g.home_team_name,
+        away_team: g.away_team_name,
+        home_score: parseInt(g.home_score) || 0,
+        away_score: parseInt(g.away_score) || 0,
+        location: g.hall_name || 'אולם ספורט'
+      };
+    });
 
-    const { error: insErr } = await supabase.from('games').insert(games);
-    if (insErr) throw insErr;
+    console.log(`✅ הצלחנו! נמצאו ${games.length} משחקים אמיתיים.`);
 
-    console.log("🚀 הסנכרון הסתיים בהצלחה!");
+    // ניקוי ועדכון Supabase
+    await supabase.from('games').delete().neq('home_team', 'TEMP_LOCK');
+    const { error } = await supabase.from('games').insert(games);
+    
+    if (error) throw error;
+    console.log("🚀 כל לוח המשחקים עודכן ב-Supabase!");
+
   } catch (err) {
-    console.error("❌ תקלה קריטית:", err);
-    process.exit(1); // גורם ל-GitHub Action להיכשל אם אין נתונים
+    console.error("❌ תקלה בשליפת הנתונים:", err);
+    process.exit(1);
   }
 }
 
