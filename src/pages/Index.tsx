@@ -2,9 +2,9 @@ import { useState } from "react";
 import { HomeTab } from "@/components/HomeTab";
 import { GamesTab } from "@/components/GamesTab";
 import StatsTab from "@/components/StatsTab";
-import TrainingTab from "@/components/TrainingTab";
+import TrainingTab from "@/components/Training/TrainingTab"; // נמצא בתוך תיקיית Training
 import ProfileTab from "@/components/ProfileTab";
-import CoachTab from "@/components/AICoach/CoachTab";
+import CoachTab from "@/components/AICoach/CoachTab";     // נמצא בתוך תיקיית AICoach
 import { BottomNav } from "@/components/BottomNav";
 
 const Index = () => {
@@ -12,28 +12,19 @@ const Index = () => {
 
   const renderContent = () => {
     switch (activeTab) {
-      case "home":
-        return <HomeTab />;
-      case "games":
-        return <GamesTab />;
-      case "stats":
-        return <StatsTab />;
-      case "training":
-        return <TrainingTab />;
-      case "coach":
-        return <CoachTab />;
-      case "profile":
-        return <ProfileTab />;
-      default:
-        return <HomeTab />;
+      case "home": return <HomeTab />;
+      case "games": return <GamesTab />;
+      case "stats": return <StatsTab />;
+      case "training": return <TrainingTab />;
+      case "coach": return <CoachTab />;
+      case "profile": return <ProfileTab />;
+      default: return <HomeTab />;
     }
   };
 
   return (
     <div className="min-h-screen bg-background text-foreground pb-24">
-      <main>
-        {renderContent()}
-      </main>
+      <main>{renderContent()}</main>
       <BottomNav activeTab={activeTab} onTabChange={setActiveTab} />
     </div>
   );
