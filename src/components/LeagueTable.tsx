@@ -13,7 +13,7 @@ export function LeagueTable() {
   const triggerUpdate = useTriggerLeagueUpdate();
 
   const handleManualRefresh = async () => {
-    setIsRefreshing(true);
+    setIsRefreshing(true);ד
     try {
       console.log("\n🏀 [LeagueTable] User clicked refresh button");
       await triggerUpdate();
