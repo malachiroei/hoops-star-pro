@@ -1,13 +1,11 @@
 import { useState } from "react";
 import { HomeTab } from "@/components/HomeTab";
 import { GamesTab } from "@/components/GamesTab";
-import StatsTab from "@/components/StatsTab";
-import TrainingTab from "@/components/Training/TrainingTab"; // נמצא בתוך תיקיית Training
-import ProfileTab from "@/components/ProfileTab";
-import CoachTab from "@/components/AICoach/CoachTab";     // נמצא בתוך תיקיית AICoach
-import { BottomNav } from "@/components/BottomNav";
-
-const Index = () => {
+import { StatsTab } from "@/components/StatsTab";
+import { TrainingTab } from "@/components/TrainingTab";
+import { ProfileTab } from "@/components/ProfileTab";
+import { CoachTab } from "@/components/AICoach/CoachTab";
+import { BottomNav } from "@/components/BottomNav";Index = () => {
   const [activeTab, setActiveTab] = useState("home");
 
   const renderContent = () => {
