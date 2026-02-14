@@ -1,40 +1,43 @@
 import { useState } from "react";
 import { HomeTab } from "@/components/HomeTab";
-import { GamesTab } from "@/components/GamesTab"; // ייבוא הקומפוננטה החדשה
-import { BottomNav } from "@/components/BottomNav";
+import { GamesTab } from "@/components/GamesTab";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Trophy, CalendarDays } from "lucide-react";
 
 const Index = () => {
-  const [activeTab, setActiveTab] = useState("home");
-
-  // פונקציה לבחירת התוכן להצגה לפי הטאב הנבחר
-  const renderContent = () => {
-    switch (activeTab) {
-      case "home":
-        return <HomeTab />;
-      case "games":
-        return <GamesTab />;
-      case "stats":
-        return <div className="p-8 text-center text-muted-foreground">סטטיסטיקות (בקרוב)</div>;
-      case "training":
-        return <div className="p-8 text-center text-muted-foreground">תוכניות אימונים (בקרוב)</div>;
-      case "coach":
-        return <div className="p-8 text-center text-muted-foreground">מאמן AI אישי (בקרוב)</div>;
-      case "profile":
-        return <div className="p-8 text-center text-muted-foreground">פרופיל שחקן (בקרוב)</div>;
-      default:
-        return <HomeTab />;
-    }
-  };
-
   return (
-    <div className="min-h-screen bg-background text-foreground pb-24">
-      {/* התוכן המשתנה */}
-      <main>
-        {renderContent()}
-      </main>
+    <div className="min-h-screen bg-background pb-20">
+      <Tabs defaultValue="standings" className="w-full">
+        {/* תוכן הטאבים */}
+        <div className="container mx-auto">
+          <TabsContent value="standings">
+            <HomeTab />
+          </TabsContent>
+          <TabsContent value="games">
+            <GamesTab />
+          </TabsContent>
+        </div>
 
-      {/* תפריט ניווט תחתון */}
-      <BottomNav activeTab={activeTab} onTabChange={setActiveTab} />
+        {/* תפריט ניווט תחתון */}
+        <div className="fixed bottom-0 left-0 right-0 z-50 bg-background/80 backdrop-blur-lg border-t border-border">
+          <TabsList className="grid w-full grid-cols-2 h-16 bg-transparent">
+            <TabsTrigger 
+              value="standings" 
+              className="flex flex-col gap-1 data-[state=active]:text-primary"
+            >
+              <Trophy size={20} />
+              <span className="text-[10px] font-bold">טבלה</span>
+            </TabsTrigger>
+            <TabsTrigger 
+              value="games" 
+              className="flex flex-col gap-1 data-[state=active]:text-primary"
+            >
+              <CalendarDays size={20} />
+              <span className="text-[10px] font-bold">משחקים</span>
+            </TabsTrigger>
+          </TabsList>
+        </div>
+      </Tabs>
     </div>
   );
 };
