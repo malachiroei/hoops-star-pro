@@ -2,9 +2,9 @@ import { useState } from "react";
 import { HomeTab } from "@/components/HomeTab";
 import { GamesTab } from "@/components/GamesTab";
 import StatsTab from "@/components/StatsTab";
-import TrainingTab from "@/components/Training/TrainingTab"; // הוספתי /Training/
+import TrainingTab from "@/components/Training/TrainingTab";
 import ProfileTab from "@/components/ProfileTab";
-import CoachTab from "@/components/AICoach/CoachTab";     // נתיב לתיקיית AICoach
+import CoachTab from "@/components/AICoach/CoachTab";
 import { BottomNav } from "@/components/BottomNav";
 
 const Index = () => {
@@ -39,3 +39,4 @@ const Index = () => {
   );
 };
 
+export default Index;
