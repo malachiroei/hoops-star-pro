@@ -10,69 +10,67 @@ const supabase = createClient(
 async function fetchLeagueGames() {
   try {
     const url = 'https://ibasketball.co.il/league/2025-270/#gsc.tab=0';
-    console.log("🏀 מתחיל סריקה עמוקה מהכתובת:", url);
+    console.log("🏀 שולף נתונים מהאיגוד...");
     
-    // שליחת בקשה עם Header של דפדפן כדי לא להיחסם
+    // שליחת בקשה עם התחזות מלאה לדפדפן כדי לעקוף חסימות API
     const { data } = await axios.get(url, {
       headers: {
-        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'
+        'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8',
+        'Accept-Language': 'he-IL,he;q=0.9,en-US;q=0.8,en;q=0.7',
+        'Cache-Control': 'no-cache',
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/121.0.0.0 Safari/537.36'
       }
     });
-    
+
     const $ = cheerio.load(data);
     const games: any[] = [];
 
-    // סריקה של כל הטבלאות בדף (למקרה שיש כמה)
-    $('table tr').each((_, el) => {
+    // איתור כל שורה שיש לה מבנה של משחק (תאריך, שעה, קבוצות)
+    $('tr').each((_, el) => {
       const cells = $(el).find('td');
-      
-      // אנחנו מחפשים שורות עם לפחות 5 עמודות (תאריך, שעה, מארחת, אורחת, תוצאה)
-      if (cells.length >= 5) {
-        const dateStr = $(cells[0]).text().trim();
-        const timeStr = $(cells[1]).text().trim();
-        const homeTeam = $(cells[3]).text().trim();
-        const awayTeam = $(cells[4]).text().trim();
-        const scoreStr = $(cells[5]).text().trim();
+      if (cells.length < 5) return;
 
-        // דילוג על שורות כותרת או שורות ריקות
-        if (!homeTeam || homeTeam === 'מארחת' || !dateStr.includes('/')) return;
+      const dateText = $(cells[0]).text().trim();
+      const timeText = $(cells[1]).text().trim();
+      const homeTeam = $(cells[3]).text().trim();
+      const awayTeam = $(cells[4]).text().trim();
+      const scoreText = $(cells[5]).text().trim();
 
-        // עיבוד תאריך ושעה
-        const [day, month, year] = dateStr.split('/');
-        const isoDate = `20${year}-${month}-${day}T${timeStr || '00:00'}:00Z`;
+      // וודא שמדובר בשורת נתונים אמיתית (תאריך בפורמט dd/mm/yy)
+      if (!dateText.includes('/') || !homeTeam) return;
 
-        // עיבוד תוצאה
-        let hScore = 0, aScore = 0;
-        if (scoreStr.includes('-')) {
-          const parts = scoreStr.split('-').map(s => parseInt(s.trim()));
-          // באתר האיגוד התוצאה מוצגת בד"כ כ "אורחת - מארחת"
-          aScore = parts[0] || 0;
-          hScore = parts[1] || 0;
-        }
+      const parts = dateText.split('/');
+      const isoDate = `20${parts[2]}-${parts[1]}-${parts[0]}T${timeText || '00:00'}:00Z`;
 
-        games.push({
-          game_date: isoDate,
-          home_team: homeTeam,
-          away_team: awayTeam,
-          home_score: hScore,
-          away_score: aScore,
-          location: 'אולם ספורט'
-        });
+      let hScore = 0, aScore = 0;
+      if (scoreText.includes('-')) {
+        const scoreParts = scoreText.split('-').map(s => parseInt(s.trim()));
+        aScore = scoreParts[0] || 0;
+        hScore = scoreParts[1] || 0;
       }
+
+      games.push({
+        game_date: isoDate,
+        home_team: homeTeam,
+        away_team: awayTeam,
+        home_score: hScore,
+        away_score: aScore,
+        location: 'אולם ספורט'
+      });
     });
 
-    console.log(`🔍 סריקה הושלמה. נמצאו ${games.length} משחקים בטבלה.`);
-
     if (games.length === 0) {
-      throw new Error("לא נמצאו משחקים בטבלה. ייתכן שנדרש דפדפן מלא לסריקה.");
+      throw new Error("הדף נטען אבל הטבלה לא חולצה. נסה שוב.");
     }
 
-    // עדכון Supabase
-    const { error: delErr } = await supabase.from('games').delete().not('id', 'is', null);
-    const { error: insErr } = await supabase.from('games').insert(games);
+    console.log(`✅ הצלחנו! נמצאו ${games.length} משחקים.`);
+
+    // ניקוי ועדכון Supabase
+    await supabase.from('games').delete().neq('home_team', 'FORCE_CLEAN');
+    const { error } = await supabase.from('games').insert(games);
     
-    if (insErr) throw insErr;
-    console.log("🚀 טבלת המשחקים ב-Supabase עודכנה בהצלחה!");
+    if (error) throw error;
+    console.log("🚀 כל המשחקים סונכרנו ל-Supabase!");
 
   } catch (err) {
     console.error("❌ תקלה:", err.message);
