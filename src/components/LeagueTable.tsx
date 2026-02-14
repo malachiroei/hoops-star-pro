@@ -37,7 +37,7 @@ export function LeagueTable() {
     return (
       <Card className="w-full">
         <CardHeader>
-          <CardTitle>טבלה</CardTitle>
+   <CardTitle>טבלה 2026</CardTitle>
           <CardDescription>Loading league standings...</CardDescription>
         </CardHeader>
       </Card>
