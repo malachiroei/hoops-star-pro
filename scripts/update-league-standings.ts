@@ -163,13 +163,10 @@ async function runUpdate() {
   }
 }
 
-// Schedule the cron job to run every 24 hours (at 3 AM)
-const schedule = "0 3 * * *";
-console.log(`🕐 Cron job scheduled: ${schedule} (Every day at 3 AM UTC)`);
-console.log("Press Ctrl+C to stop");
+runUpdate()
+  .then(() => process.exit(0))
+  .catch((err) => {
+    console.error(err);
+    process.exit(1);
+  });
 
-cron.schedule(schedule, runUpdate);
-
-// Run immediately on startup for testing
-console.log("Running initial update...");
-runUpdate().catch(console.error);
