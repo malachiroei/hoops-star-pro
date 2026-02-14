@@ -1,5 +1,6 @@
 import { createClient } from '@supabase/supabase-js';
 import axios from 'axios';
+import * as cheerio from 'cheerio';
 
 const supabase = createClient(
   process.env.SUPABASE_URL!,
@@ -8,49 +9,73 @@ const supabase = createClient(
 
 async function fetchLeagueGames() {
   try {
-    console.log("🏀 מושך נתונים ישירות מה-API של איגוד הכדורסל...");
+    const url = 'https://ibasketball.co.il/league/2025-270/#gsc.tab=0';
+    console.log("🏀 מתחיל סריקה עמוקה מהכתובת:", url);
     
-    // שליחת בקשה ישירה לשרת של האיגוד לקבלת לוח המשחקים של ליגה 270
-    const response = await axios.post('https://ibasketball.co.il/wp-admin/admin-ajax.php', 
-      new URLSearchParams({
-        action: 'get_league_games',
-        league_id: '270',
-        season: '2025'
-      }), {
-        headers: { 'Content-Type': 'application/x-www-form-urlencoded' }
+    // שליחת בקשה עם Header של דפדפן כדי לא להיחסם
+    const { data } = await axios.get(url, {
+      headers: {
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'
       }
-    );
+    });
+    
+    const $ = cheerio.load(data);
+    const games: any[] = [];
 
-    if (!response.data || !Array.isArray(response.data.games)) {
-      throw new Error("השרת של האיגוד החזיר תשובה לא תקינה");
-    }
+    // סריקה של כל הטבלאות בדף (למקרה שיש כמה)
+    $('table tr').each((_, el) => {
+      const cells = $(el).find('td');
+      
+      // אנחנו מחפשים שורות עם לפחות 5 עמודות (תאריך, שעה, מארחת, אורחת, תוצאה)
+      if (cells.length >= 5) {
+        const dateStr = $(cells[0]).text().trim();
+        const timeStr = $(cells[1]).text().trim();
+        const homeTeam = $(cells[3]).text().trim();
+        const awayTeam = $(cells[4]).text().trim();
+        const scoreStr = $(cells[5]).text().trim();
 
-    const games = response.data.games.map((g: any) => {
-      // המרת התאריך לפורמט ISO תקין
-      const [day, month, year] = g.date.split('/');
-      const isoDate = `20${year}-${month}-${day}T${g.time || '00:00'}:00Z`;
+        // דילוג על שורות כותרת או שורות ריקות
+        if (!homeTeam || homeTeam === 'מארחת' || !dateStr.includes('/')) return;
 
-      return {
-        game_date: isoDate,
-        home_team: g.home_team_name,
-        away_team: g.away_team_name,
-        home_score: parseInt(g.home_score) || 0,
-        away_score: parseInt(g.away_score) || 0,
-        location: g.hall_name || 'אולם ספורט'
-      };
+        // עיבוד תאריך ושעה
+        const [day, month, year] = dateStr.split('/');
+        const isoDate = `20${year}-${month}-${day}T${timeStr || '00:00'}:00Z`;
+
+        // עיבוד תוצאה
+        let hScore = 0, aScore = 0;
+        if (scoreStr.includes('-')) {
+          const parts = scoreStr.split('-').map(s => parseInt(s.trim()));
+          // באתר האיגוד התוצאה מוצגת בד"כ כ "אורחת - מארחת"
+          aScore = parts[0] || 0;
+          hScore = parts[1] || 0;
+        }
+
+        games.push({
+          game_date: isoDate,
+          home_team: homeTeam,
+          away_team: awayTeam,
+          home_score: hScore,
+          away_score: aScore,
+          location: 'אולם ספורט'
+        });
+      }
     });
 
-    console.log(`✅ הצלחנו! נמצאו ${games.length} משחקים אמיתיים.`);
+    console.log(`🔍 סריקה הושלמה. נמצאו ${games.length} משחקים בטבלה.`);
 
-    // ניקוי ועדכון Supabase
-    await supabase.from('games').delete().neq('home_team', 'TEMP_LOCK');
-    const { error } = await supabase.from('games').insert(games);
+    if (games.length === 0) {
+      throw new Error("לא נמצאו משחקים בטבלה. ייתכן שנדרש דפדפן מלא לסריקה.");
+    }
+
+    // עדכון Supabase
+    const { error: delErr } = await supabase.from('games').delete().not('id', 'is', null);
+    const { error: insErr } = await supabase.from('games').insert(games);
     
-    if (error) throw error;
-    console.log("🚀 כל לוח המשחקים עודכן ב-Supabase!");
+    if (insErr) throw insErr;
+    console.log("🚀 טבלת המשחקים ב-Supabase עודכנה בהצלחה!");
 
   } catch (err) {
-    console.error("❌ תקלה בשליפת הנתונים:", err);
+    console.error("❌ תקלה:", err.message);
     process.exit(1);
   }
 }
