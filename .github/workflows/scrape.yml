@@ -25,25 +25,18 @@ jobs:
       - name: Debug scraper path
         run: |
           echo "PWD: $(pwd)"
-          echo "Top-level files:"
-          ls -la
-          echo "scripts folder:"
           ls -la scripts || true
-          echo "Find scraper candidates:"
-          find . -maxdepth 4 -type f -name "*scrape*stand*.*" -print || true
 
-      - name: Run Scraper
+      - name: Run Standings Scraper
         shell: bash
-        run: |
-          set -e
-          SCRIPT="scripts/update-league-standings.ts"
-          if [ ! -f "$SCRIPT" ]; then
-            echo "❌ Script not found at: $SCRIPT"
-            echo "Files under scripts:"
-            ls -la scripts || true
-            exit 1
-          fi
-          npx tsx "$SCRIPT"
+        run: npx tsx scripts/update-league-standings.ts
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+
+      - name: Run Games Scraper
+        shell: bash
+        run: npx tsx scripts/fetch-games.ts
         env:
           SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
           SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
