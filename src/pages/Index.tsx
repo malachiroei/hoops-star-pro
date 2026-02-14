@@ -1,44 +1,39 @@
 import { useState } from "react";
-import { BottomNav } from "@/components/BottomNav";
 import { HomeTab } from "@/components/HomeTab";
-import { StatsTab } from "@/components/StatsTab";
-import { ChallengesTab } from "@/components/ChallengesTab";
-import { ProfileTab } from "@/components/ProfileTab";
-import { TrainingTab } from "@/components/TrainingTab";
-import { AICoach } from "@/components/AICoach";
+import { GamesTab } from "@/components/GamesTab"; // ייבוא הקומפוננטה החדשה
+import { BottomNav } from "@/components/BottomNav";
 
-interface IndexProps {
-  onLogout?: () => void;
-}
-
-const Index = ({ onLogout }: IndexProps) => {
+const Index = () => {
   const [activeTab, setActiveTab] = useState("home");
 
-  const renderTab = () => {
+  // פונקציה לבחירת התוכן להצגה לפי הטאב הנבחר
+  const renderContent = () => {
     switch (activeTab) {
       case "home":
         return <HomeTab />;
+      case "games":
+        return <GamesTab />;
       case "stats":
-        return <StatsTab />;
+        return <div className="p-8 text-center text-muted-foreground">סטטיסטיקות (בקרוב)</div>;
       case "training":
-        return <TrainingTab />;
+        return <div className="p-8 text-center text-muted-foreground">תוכניות אימונים (בקרוב)</div>;
       case "coach":
-        return <AICoach />;
+        return <div className="p-8 text-center text-muted-foreground">מאמן AI אישי (בקרוב)</div>;
       case "profile":
-        return <ProfileTab onLogout={onLogout} />;
+        return <div className="p-8 text-center text-muted-foreground">פרופיל שחקן (בקרוב)</div>;
       default:
         return <HomeTab />;
     }
   };
 
   return (
-    <div className="min-h-screen bg-background" dir="rtl">
-      {/* Main Content */}
-      <main className="pb-24 max-w-lg mx-auto">
-        {renderTab()}
+    <div className="min-h-screen bg-background text-foreground pb-24">
+      {/* התוכן המשתנה */}
+      <main>
+        {renderContent()}
       </main>
 
-      {/* Bottom Navigation */}
+      {/* תפריט ניווט תחתון */}
       <BottomNav activeTab={activeTab} onTabChange={setActiveTab} />
     </div>
   );
