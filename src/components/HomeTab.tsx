@@ -47,13 +47,13 @@ export function HomeTab() {
         <p className="text-muted-foreground mt-1">ליגת כדורסל נוער • Youth Basketball</p>
       </div>
 
-      {/* League Title - כאן השינוי שביקשת */}
+      {/* League Title */}
       <div className="flex items-center gap-3 mb-4">
         <div className="w-10 h-10 rounded-xl orange-gradient-bg flex items-center justify-center shadow-glow">
           <img src="/basketball.svg" alt="Basketball" className="w-5 h-5" />
         </div>
         <div>
-          <h2 className="text-xl font-display uppercase text-foreground">טבלת ליגה ילדים א תל אביב</h2>
+          <h2 className="text-xl font-display uppercase text-foreground">טבלת ליגה ילדים א תל אביב 2026</h2>
           <p className="text-sm text-muted-foreground">League Standings (Live)</p>
         </div>
       </div>
@@ -64,8 +64,9 @@ export function HomeTab() {
           <Hash className="text-muted-foreground" size={14} />
         </div>
         <div className="col-span-5 text-xs text-muted-foreground font-medium">קבוצה</div>
-        <div className="col-span-2 text-xs text-muted-foreground font-medium text-center">W</div>
-        <div className="col-span-2 text-xs text-muted-foreground font-medium text-center">L</div>
+        <div className="col-span-2 text-xs text-muted-foreground font-medium text-center">מש׳</div>
+        <div className="col-span-1 text-xs text-muted-foreground font-medium text-center">W</div>
+        <div className="col-span-1 text-xs text-muted-foreground font-medium text-center">L</div>
         <div className="col-span-2 text-xs text-muted-foreground font-medium text-center">PTS</div>
       </div>
 
@@ -79,6 +80,9 @@ export function HomeTab() {
           standings.map((team, index) => {
             const isOurTeam = team.name?.includes("בני יהודה") || team.name?.includes("רביד");
             
+            // חישוב מספר המשחקים
+            const calculatedGP = (Number(team.wins) || 0) + (Number(team.losses) || 0);
+
             return (
               <div
                 key={team.id}
@@ -107,7 +111,7 @@ export function HomeTab() {
                       </span>
                     </div>
                     <div className="min-w-0 flex-1">
-                      <p className={`font-medium text-xs leading-tight ${isOurTeam ? "text-primary" : "text-foreground"}`}>
+                      <p className={`font-medium text-[10px] sm:text-xs leading-tight ${isOurTeam ? "text-primary" : "text-foreground"}`}>
                         {team.name}
                       </p>
                       {isOurTeam && (
@@ -119,10 +123,15 @@ export function HomeTab() {
                     </div>
                   </div>
 
-                  <div className="col-span-2 text-center text-lg font-display font-black text-primary">
+                  {/* עמודת משחקים (GP) */}
+                  <div className="col-span-2 text-center text-base font-display font-black text-blue-400">
+                    {calculatedGP}
+                  </div>
+                  
+                  <div className="col-span-1 text-center text-base font-display font-black text-primary">
                     {team.wins}
                   </div>
-                  <div className="col-span-2 text-center text-lg font-display font-black text-destructive">
+                  <div className="col-span-1 text-center text-base font-display font-black text-destructive">
                     {team.losses}
                   </div>
                   <div className="col-span-2 text-center text-lg font-display font-black text-foreground">
