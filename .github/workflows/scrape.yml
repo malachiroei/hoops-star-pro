@@ -32,7 +32,7 @@ jobs:
           echo "Find scraper candidates:"
           find . -maxdepth 4 -type f -name "*scrape*stand*.*" -print || true
 
-            - name: Run Scraper
+      - name: Run Scraper
         shell: bash
         run: |
           set -e
