@@ -1,6 +1,10 @@
 import { useState } from "react";
 import { HomeTab } from "@/components/HomeTab";
-import { GamesTab } from "@/components/GamesTab"; // ייבוא הקומפוננטה החדשה
+import { GamesTab } from "@/components/GamesTab";
+import { StatsTab } from "@/components/StatsTab";     // ייבוא מחדש
+import { TrainingTab } from "@/components/TrainingTab"; // ייבוא מחדש
+import { CoachTab } from "@/components/CoachTab";       // ייבוא מחדש
+import { ProfileTab } from "@/components/ProfileTab";   // ייבוא מחדש
 import { BottomNav } from "@/components/BottomNav";
 
 const Index = () => {
@@ -14,13 +18,13 @@ const Index = () => {
       case "games":
         return <GamesTab />;
       case "stats":
-        return <div className="p-8 text-center text-muted-foreground">סטטיסטיקות (בקרוב)</div>;
+        return <StatsTab />;
       case "training":
-        return <div className="p-8 text-center text-muted-foreground">תוכניות אימונים (בקרוב)</div>;
+        return <TrainingTab />;
       case "coach":
-        return <div className="p-8 text-center text-muted-foreground">מאמן AI אישי (בקרוב)</div>;
+        return <CoachTab />;
       case "profile":
-        return <div className="p-8 text-center text-muted-foreground">פרופיל שחקן (בקרוב)</div>;
+        return <ProfileTab />;
       default:
         return <HomeTab />;
     }
