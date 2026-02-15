@@ -33,8 +33,8 @@ interface Exercise {
 
 const exercises: Exercise[] = [
   { id: "pushups", name: "שכיבות סמיכה", nameEn: "Push-ups", sets: "3 × 15", icon: "💪", category: "strength", youtubeId: "IODxDxX7oi4" },
-  { id: "squats", name: "סקוואטים", nameEn: "Squats", sets: "3 × 20", icon: "🦵", category: "strength", youtubeId: "YaXPRqUwItQ" },
-  { id: "planks", name: "פלאנק", nameEn: "Planks", sets: "3 × 45 שניות", icon: "🧘", category: "strength", youtubeId: "ASdvN_XEl_c" },
+  { id: "squats", name: "סקוואטים", nameEn: "Squats", sets: "3 × 20", icon: "🦵", category: "strength", youtubeId: "aclHkVaku9U" },
+  { id: "planks", name: "פלאנק", nameEn: "Planks", sets: "3 × 45 שניות", icon: "🧘", category: "strength", youtubeId: "pSHjTRCQxIw" },
   { id: "jumpingjacks", name: "קפיצות פיסוק", nameEn: "Jumping Jacks", sets: "3 × 30", icon: "⭐", category: "agility" },
   { id: "highknees", name: "ברכיים לחזה", nameEn: "High Knees", sets: "3 × 20", icon: "🏃", category: "agility" },
 ];
