@@ -41,7 +41,6 @@ interface MealRecommendation {
   bgColor: string;
   borderColor: string;
 }
-
 const mealRecommendations: MealRecommendation[] = [
   {
     id: "breakfast",
@@ -79,7 +78,7 @@ const mealRecommendations: MealRecommendation[] = [
     bgColor: "from-blue-500/15 to-indigo-500/10",
     borderColor: "border-blue-500/30"
   },
-];
+  ];
 
 interface MealAnalysis {
   score: number;
