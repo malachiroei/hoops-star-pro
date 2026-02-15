@@ -20,7 +20,7 @@ const TrainingTab = () => {
       </div>
 
       <Tabs defaultValue="workout" className="w-full">
-        <TabsList className="w-full grid grid-cols-4 bg-slate-900 h-12">
+        <TabsList className="w-full grid grid-cols-4 bg-slate-900 h-12 border border-white/5">
           <TabsTrigger value="workout" className="text-[10px] sm:text-xs gap-1"><Dumbbell size={14}/>כושר</TabsTrigger>
           <TabsTrigger value="nutrition" className="text-[10px] sm:text-xs gap-1"><Utensils size={14}/>תזונה</TabsTrigger>
           <TabsTrigger value="moves" className="text-[10px] sm:text-xs gap-1"><Dribbble size={14}/>מהלכים</TabsTrigger>
@@ -37,7 +37,7 @@ const TrainingTab = () => {
         <TabsContent value="nutrition" className="mt-4 space-y-4">
           <Card className="glass-card bg-slate-900/50 border-white/10">
             <CardHeader><CardTitle className="text-right">תפריט תזונה</CardTitle></CardHeader>
-            <CardContent className="text-right text-sm text-slate-400">סדר ארוחות מותאם לביצועים במגרש.</CardContent>
+            <CardContent className="text-right text-sm text-slate-400 font-bold text-purple-400 italic">נשנושים של ניסוי 🧪 מופיעים כעת לפני ארוחת ערב.</CardContent>
           </Card>
         </TabsContent>
 
@@ -60,13 +60,13 @@ const TrainingTab = () => {
               <div className="grid grid-cols-2 gap-4 relative text-right" dir="rtl">
                 <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 bg-primary/20 p-2 rounded-full border border-primary/40 z-10 font-bold text-[10px]">VS</div>
                 
-                <div className="p-4 rounded-xl border border-primary/30 bg-primary/5 text-center space-y-3 shadow-[0_0_15px_rgba(255,165,0,0.1)]">
+                <div className="p-4 rounded-xl border border-primary/30 bg-primary/5 text-center space-y-3">
                   <div className="text-4xl">👤</div>
                   <h3 className="font-bold text-primary text-sm">{leaguePlayers[0].name}</h3>
                   <div className="space-y-2 text-[10px]">
-                    <div className="flex justify-between border-b border-white/5 pb-1"><span>נקודות:</span> <span className="font-mono font-bold text-white">{leaguePlayers[0].ppg}</span></div>
-                    <div className="flex justify-between border-b border-white/5 pb-1"><span>דקות:</span> <span className="font-mono font-bold text-white">{leaguePlayers[0].mpg}</span></div>
-                    <div className="flex justify-between"><span>אחוזים:</span> <span className="font-mono font-bold text-green-400">{leaguePlayers[0].fg}</span></div>
+                    <div className="flex justify-between border-b border-white/5 pb-1"><span>Ppts:</span> <span className="font-mono font-bold text-white">{leaguePlayers[0].ppg}</span></div>
+                    <div className="flex justify-between border-b border-white/5 pb-1"><span>Mins:</span> <span className="font-mono font-bold text-white">{leaguePlayers[0].mpg}</span></div>
+                    <div className="flex justify-between"><span>FG%:</span> <span className="font-mono font-bold text-green-400">{leaguePlayers[0].fg}</span></div>
                   </div>
                 </div>
 
@@ -74,13 +74,13 @@ const TrainingTab = () => {
                   <div className="text-4xl">👤</div>
                   <h3 className="font-bold text-white/90 text-sm">{leaguePlayers[1].name}</h3>
                   <div className="space-y-2 text-[10px]">
-                    <div className="flex justify-between border-b border-white/5 pb-1"><span>נקודות:</span> <span className="font-mono font-bold text-white">{leaguePlayers[1].ppg}</span></div>
-                    <div className="flex justify-between border-b border-white/5 pb-1"><span>דקות:</span> <span className="font-mono font-bold text-white">{leaguePlayers[1].mpg}</span></div>
-                    <div className="flex justify-between"><span>אחוזים:</span> <span className="font-mono font-bold text-yellow-400">{leaguePlayers[1].fg}</span></div>
+                    <div className="flex justify-between border-b border-white/5 pb-1"><span>Ppts:</span> <span className="font-mono font-bold text-white">{leaguePlayers[1].ppg}</span></div>
+                    <div className="flex justify-between border-b border-white/5 pb-1"><span>Mins:</span> <span className="font-mono font-bold text-white">{leaguePlayers[1].mpg}</span></div>
+                    <div className="flex justify-between"><span>FG%:</span> <span className="font-mono font-bold text-yellow-400">{leaguePlayers[1].fg}</span></div>
                   </div>
                 </div>
               </div>
-              <Button variant="outline" className="w-full border-primary/20 hover:bg-primary/10 text-xs h-9">החלף שחקן להשוואה</Button>
+              <Button variant="outline" className="w-full border-primary/20 hover:bg-primary/10 text-xs h-9">שנה שחקנים להשוואה</Button>
             </CardContent>
           </Card>
         </TabsContent>
@@ -89,4 +89,4 @@ const TrainingTab = () => {
   );
 };
 
-export default TrainingTab;</TabsList>}
+export default TrainingTab;
