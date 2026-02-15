@@ -1,7 +1,19 @@
-  Activity, Dumbbell, Utensils, Dribbble, Star, 
-  Trophy, BarChart3, Target, Zap, Shield, 
-  ChevronRight, Sunrise, Sun, Cookie, Flame, Clock
+import React, { useState } from "react";
+import {
+  Activity, Dumbbell, Utensils, Dribbble, Star,
+  Trophy, BarChart3, Target, Zap, Shield,
+  ChevronRight, Sunrise, Sun, Cookie, Flame, Clock,
+  Check, Camera, MessageSquare, Play, X, Loader2, Lightbulb, Apple, Wheat, Drumstick
 } from "lucide-react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
+const leaguePlayers = [
+  { id: "1", name: "רביד מלאכי", ppg: 18.5, rpg: 4.2, apg: 3.1, fg: "52%", team: "מכבי רמת גן" },
+  { id: "2", name: "דוד מזרחי", ppg: 16.2, rpg: 5.8, apg: 2.4, fg: "48%", team: "הפועל ת"א" },
+];
 
 // Meal images
 import mealBreakfast from "@/assets/meal-breakfast.jpg";
@@ -73,6 +85,17 @@ const TrainingTab = () => {
               ))}
             </CardContent>
           </Card>
+          {/* אימון אישי */}
+          <div className="space-y-4 mt-8">
+            {exercises.map((exercise, idx) => (
+              <ExerciseCard
+                key={exercise.id}
+                exercise={exercise}
+                isCompleted={false}
+                onToggle={() => {}}
+              />
+            ))}
+          </div>
         </TabsContent>
 
         <TabsContent value="nutrition" className="mt-8 space-y-6">
@@ -138,5 +161,70 @@ const TrainingTab = () => {
     </div>
   );
 };
+
+function ExerciseCard({ exercise, isCompleted, onToggle }) {
+  const [showVideo, setShowVideo] = useState(false);
+  return (
+    <>
+      <Card className={`glass-card overflow-hidden transition-all duration-300 ${isCompleted ? 'border-primary/50 bg-primary/10' : ''}`}>
+        <CardContent className="p-4">
+          <div className="flex items-center gap-4">
+            <div className="flex-shrink-0 cursor-pointer" onClick={onToggle}>
+              <Checkbox checked={isCompleted} className="h-6 w-6 border-2 data-[state=checked]:bg-primary data-[state=checked]:border-primary" />
+            </div>
+            <div className={`w-12 h-12 rounded-xl flex items-center justify-center text-2xl cursor-pointer ${isCompleted ? 'bg-primary/20' : 'bg-surface-dark'}`} onClick={onToggle}>
+              {exercise.icon}
+            </div>
+            <div className="flex-grow" onClick={onToggle} style={{cursor: 'pointer'}}>
+              <h3 className={`font-semibold ${isCompleted ? 'text-primary' : ''}`}>{exercise.name}</h3>
+              <p className="text-muted-foreground text-xs">{exercise.nameEn}</p>
+            </div>
+            <Badge variant="outline" className={`${isCompleted ? 'border-primary text-primary bg-primary/10' : 'border-border'}`}>{exercise.sets}</Badge>
+            {exercise.youtubeId && (
+              <Button size="sm" variant="ghost" className="hover:bg-primary/20 text-primary" onClick={() => setShowVideo(true)}>
+                <Play size={16} />
+              </Button>
+            )}
+            {isCompleted && (
+              <div className="w-6 h-6 rounded-full bg-primary flex items-center justify-center">
+                <Check size={14} className="text-primary-foreground" />
+              </div>
+            )}
+          </div>
+        </CardContent>
+      </Card>
+      {showVideo && exercise.youtubeId && (
+        <VideoModal youtubeId={exercise.youtubeId} title={exercise.name} onClose={() => setShowVideo(false)} />
+      )}
+    </>
+  );
+}
+
+function VideoModal({ youtubeId, title, onClose }) {
+  return (
+    <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+      <div className="bg-surface-dark rounded-2xl border border-border shadow-2xl max-w-2xl w-full">
+        <div className="flex items-center justify-between p-4 border-b border-border">
+          <h2 className="text-xl font-semibold">{title}</h2>
+          <button onClick={onClose} className="p-1.5 hover:bg-white/10 rounded-lg transition-colors">
+            <X size={20} />
+          </button>
+        </div>
+        <div className="aspect-video">
+          <iframe
+            width="100%"
+            height="100%"
+            src={`https://www.youtube.com/embed/${youtubeId}?autoplay=1`}
+            title={title}
+            frameBorder="0"
+            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+            allowFullScreen
+            className="rounded-b-2xl"
+          />
+        </div>
+      </div>
+    </div>
+  );
+}
 
 export default TrainingTab;
