@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { Star, Hash, Loader2 } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
 import { GamePrep } from "./GamePrep";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -40,10 +41,15 @@ export function HomeTab() {
     <div className="px-4 py-6 animate-fade-in">
       {/* Header */}
       <div className="mb-6">
-        <h1 className="text-3xl font-display uppercase text-foreground glow-text tracking-wider flex items-center gap-2">
-          HoopsPro
-          <img src="/basketball.svg" alt="Basketball" className="w-8 h-8 inline-block -mt-1" />
-        </h1>
+        <div className="flex items-center gap-3 mb-2">
+          <h1 className="text-3xl font-display uppercase text-foreground glow-text tracking-wider flex items-center gap-2">
+            HoopsPro
+            <img src="/basketball.svg" alt="Basketball" className="w-8 h-8 inline-block -mt-1" />
+          </h1>
+          <Badge className="bg-red-100 text-red-700 border border-red-300 text-xs font-semibold">
+            גרסת בדיקות
+          </Badge>
+        </div>
         <p className="text-muted-foreground mt-1">ליגת כדורסל נוער • Youth Basketball</p>
       </div>
 
