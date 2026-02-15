@@ -12,7 +12,7 @@ import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 const leaguePlayers = [
   { id: "1", name: "רביד מלאכי", ppg: 18.5, rpg: 4.2, apg: 3.1, fg: "52%", team: "מכבי רמת גן" },
-  { id: "2", name: "דוד מזרחי", ppg: 16.2, rpg: 5.8, apg: 2.4, fg: "48%", team: "הפועל ת"א" },
+  { id: "2", name: "דוד מזרחי", ppg: 16.2, rpg: 5.8, apg: 2.4, fg: "48%", team: "הפועל ת\"א" },
 ];
 
 // Meal images
