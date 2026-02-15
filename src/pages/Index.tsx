@@ -3,7 +3,7 @@ import { Badge } from "@/components/ui/badge";
 import { HomeTab } from "@/components/HomeTab";
 import { GamesTab } from "@/components/GamesTab";
 import { StatsTab } from "@/components/StatsTab";     // עכשיו עם סוגריים - בדקתי בקוד שלך
-import { TrainingTab } from "@/components/TrainingTab"; // עכשיו עם סוגריים - בדקתי בקוד שלך
+import TrainingTab from "@/components/TrainingTab";
 import { ProfileTab } from "@/components/ProfileTab";   // עכשיו עם סוגריים - בדקתי בקוד שלך
 import { CoachChat } from "@/components/AICoach/CoachChat"; // שיניתי ל-CoachChat לפי הקוד ששלחת
 import { BottomNav } from "@/components/BottomNav";
