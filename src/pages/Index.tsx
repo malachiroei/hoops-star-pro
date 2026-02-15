@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { Badge } from "@/components/ui/badge";
 import { HomeTab } from "@/components/HomeTab";
 import { GamesTab } from "@/components/GamesTab";
 import { StatsTab } from "@/components/StatsTab";     // עכשיו עם סוגריים - בדקתי בקוד שלך
@@ -32,6 +33,11 @@ const Index = () => {
 
   return (
     <div className="min-h-screen bg-background text-foreground pb-24">
+      <div className="sticky top-0 z-40 flex justify-center p-2 bg-gray-100">
+        <Badge className="bg-red-100 text-red-700 border border-red-300 font-semibold text-sm px-4 py-2">
+          🧪 גרסת בדיקות - Test Environment
+        </Badge>
+      </div>
       <main>
         {renderContent()}
       </main>
