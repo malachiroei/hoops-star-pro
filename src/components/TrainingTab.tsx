@@ -62,6 +62,15 @@ const mealRecommendations: MealRecommendation[] = [
     borderColor: "border-green-500/30"
   },
   {
+    id: "snacks",
+    title: "נשנושים של ניסוי 🧪", 
+    description: "בוסט מהיר: פרי (בננה/תפוח), חופן שקדים ואגוזים, או חטיף חלבון איכותי לפני אימון.",
+    image: mealSnacks,
+    icon: <Cookie size={18} />,
+    bgColor: "from-purple-500/15 to-pink-500/10",
+    borderColor: "border-purple-500/30"
+  },
+  {
     id: "dinner",
     title: "ארוחת ערב להתאוששות",
     description: "בניית שריר בלילה: שקשוקה עשירה, סלט טונה עם ביצה קשה, או פסטה מקמח מלא עם רוטב עגבניות וגבינה רזה.",
@@ -70,16 +79,7 @@ const mealRecommendations: MealRecommendation[] = [
     bgColor: "from-blue-500/15 to-indigo-500/10",
     borderColor: "border-blue-500/30"
   },
-  {
-    id: "snacks",
-    title: "נשנושים בריאים!", 
-    description: "בוסט מהיר: פרי (בננה/תפוח), חופן שקדים ואגוזים, או חטיף חלבון איכותי לפני אימון.",
-    image: mealSnacks,
-    icon: <Cookie size={18} />,
-    bgColor: "from-purple-500/15 to-pink-500/10",
-    borderColor: "border-purple-500/30"
-  },
-];
+];];
 
 interface MealAnalysis {
   score: number;
