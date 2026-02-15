@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Dumbbell, Utensils, Check, Camera, Clock, MessageSquare, Flame, Zap, Timer, Loader2, Star, Lightbulb, Apple, Wheat, Drumstick, Sunrise, Sun, Moon, Cookie, Dribbble } from "lucide-react";
+import { Dumbbell, Utensils, Check, Camera, Clock, MessageSquare, Flame, Zap, Timer, Loader2, Star, Lightbulb, Apple, Wheat, Drumstick, Sunrise, Sun, Moon, Cookie, Dribbble, Play, X } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Button } from "@/components/ui/button";
@@ -22,12 +22,13 @@ interface Exercise {
   sets: string;
   icon: string;
   category: "strength" | "agility";
+  youtubeId?: string;
 }
 
 const exercises: Exercise[] = [
-  { id: "pushups", name: "שכיבות סמיכה", nameEn: "Push-ups", sets: "3 × 15", icon: "💪", category: "strength" },
-  { id: "squats", name: "סקוואטים", nameEn: "Squats", sets: "3 × 20", icon: "🦵", category: "strength" },
-  { id: "planks", name: "פלאנק", nameEn: "Planks", sets: "3 × 45 שניות", icon: "🧘", category: "strength" },
+  { id: "pushups", name: "שכיבות סמיכה", nameEn: "Push-ups", sets: "3 × 15", icon: "💪", category: "strength", youtubeId: "IODxDxX7oi4" },
+  { id: "squats", name: "סקוואטים", nameEn: "Squats", sets: "3 × 20", icon: "🦵", category: "strength", youtubeId: "aclHkVakVLU" },
+  { id: "planks", name: "פלאנק", nameEn: "Planks", sets: "3 × 45 שניות", icon: "🧘", category: "strength", youtubeId: "AsVkgm5p0v0" },
   { id: "jumpingjacks", name: "קפיצות פיסוק", nameEn: "Jumping Jacks", sets: "3 × 30", icon: "⭐", category: "agility" },
   { id: "highknees", name: "ברכיים לחזה", nameEn: "High Knees", sets: "3 × 20", icon: "🏃", category: "agility" },
 ];
@@ -358,46 +359,100 @@ interface ExerciseCardProps {
 }
 
 function ExerciseCard({ exercise, isCompleted, onToggle }: ExerciseCardProps) {
+  const [showVideo, setShowVideo] = useState(false);
+
   return (
-    <Card 
-      className={`glass-card overflow-hidden transition-all duration-300 cursor-pointer ${
-        isCompleted ? 'border-primary/50 bg-primary/10' : ''
-      }`}
-      onClick={onToggle}
-    >
-      <CardContent className="p-4">
-        <div className="flex items-center gap-4">
-          <div className="flex-shrink-0">
-            <Checkbox 
-              checked={isCompleted}
-              className="h-6 w-6 border-2 data-[state=checked]:bg-primary data-[state=checked]:border-primary"
-            />
-          </div>
-          <div className={`w-12 h-12 rounded-xl flex items-center justify-center text-2xl ${
-            isCompleted ? 'bg-primary/20' : 'bg-surface-dark'
-          }`}>
-            {exercise.icon}
-          </div>
-          <div className="flex-grow">
-            <h3 className={`font-semibold ${isCompleted ? 'text-primary' : ''}`}>
-              {exercise.name}
-            </h3>
-            <p className="text-muted-foreground text-xs">{exercise.nameEn}</p>
-          </div>
-          <Badge 
-            variant="outline" 
-            className={`${isCompleted ? 'border-primary text-primary bg-primary/10' : 'border-border'}`}
-          >
-            {exercise.sets}
-          </Badge>
-          {isCompleted && (
-            <div className="w-6 h-6 rounded-full bg-primary flex items-center justify-center">
-              <Check size={14} className="text-primary-foreground" />
+    <>
+      <Card 
+        className={`glass-card overflow-hidden transition-all duration-300 ${
+          isCompleted ? 'border-primary/50 bg-primary/10' : ''
+        }`}
+      >
+        <CardContent className="p-4">
+          <div className="flex items-center gap-4">
+            <div className="flex-shrink-0 cursor-pointer" onClick={onToggle}>
+              <Checkbox 
+                checked={isCompleted}
+                className="h-6 w-6 border-2 data-[state=checked]:bg-primary data-[state=checked]:border-primary"
+              />
             </div>
-          )}
+            <div 
+              className={`w-12 h-12 rounded-xl flex items-center justify-center text-2xl cursor-pointer ${
+                isCompleted ? 'bg-primary/20' : 'bg-surface-dark'
+              }`}
+              onClick={onToggle}
+            >
+              {exercise.icon}
+            </div>
+            <div className="flex-grow" onClick={onToggle} style={{cursor: 'pointer'}}>
+              <h3 className={`font-semibold ${isCompleted ? 'text-primary' : ''}`}>
+                {exercise.name}
+              </h3>
+              <p className="text-muted-foreground text-xs">{exercise.nameEn}</p>
+            </div>
+            <Badge 
+              variant="outline" 
+              className={`${isCompleted ? 'border-primary text-primary bg-primary/10' : 'border-border'}`}
+            >
+              {exercise.sets}
+            </Badge>
+            {exercise.youtubeId && (
+              <Button
+                size="sm"
+                variant="ghost"
+                className="hover:bg-primary/20 text-primary"
+                onClick={() => setShowVideo(true)}
+              >
+                <Play size={16} />
+              </Button>
+            )}
+            {isCompleted && (
+              <div className="w-6 h-6 rounded-full bg-primary flex items-center justify-center">
+                <Check size={14} className="text-primary-foreground" />
+              </div>
+            )}
+          </div>
+        </CardContent>
+      </Card>
+
+      {showVideo && exercise.youtubeId && (
+        <VideoModal 
+          youtubeId={exercise.youtubeId}
+          title={exercise.name}
+          onClose={() => setShowVideo(false)}
+        />
+      )}
+    </>
+  );
+}
+
+function VideoModal({ youtubeId, title, onClose }: { youtubeId: string; title: string; onClose: () => void }) {
+  return (
+    <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+      <div className="bg-surface-dark rounded-2xl border border-border shadow-2xl max-w-2xl w-full">
+        <div className="flex items-center justify-between p-4 border-b border-border">
+          <h2 className="text-xl font-semibold">{title}</h2>
+          <button
+            onClick={onClose}
+            className="p-1.5 hover:bg-white/10 rounded-lg transition-colors"
+          >
+            <X size={20} />
+          </button>
         </div>
-      </CardContent>
-    </Card>
+        <div className="aspect-video">
+          <iframe
+            width="100%"
+            height="100%"
+            src={`https://www.youtube.com/embed/${youtubeId}?autoplay=1`}
+            title={title}
+            frameBorder="0"
+            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+            allowFullScreen
+            className="rounded-b-2xl"
+          />
+        </div>
+      </div>
+    </div>
   );
 }
 
